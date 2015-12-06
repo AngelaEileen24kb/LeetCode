@@ -1,0 +1,82 @@
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <string>
+#include <set>
+#include <stdlib.h>
+using namespace std;
+
+struct Node{
+    int val;
+    Node *left;
+    Node *right;
+    Node(int x) : val(x), left(NULL), right(NULL) {}
+};
+
+
+class Solution {
+public:
+    vector<int> printTreeNodesInOneLevel(Node* root, int level) {
+        vector<int> res;
+        if (root == NULL) {
+            return res;
+        }
+        queue<pair<Node*, int>> q;
+        q.push(make_pair(root, 0));
+        while (!q.empty()) {
+            pair<Node*, int> top = q.front();
+            q.pop();
+            if (top.second == level) {
+                res.push_back(top.first->val);
+            }
+            if (top.first->left) {
+                q.push(make_pair(top.first->left, top.second + 1));
+            }
+            if (top.first->right) {
+                q.push(make_pair(top.first->right, top.second + 1));
+            }
+        }
+        return res;
+    }
+};
+
+int main(int argc, const char * argv[])
+{
+    /*
+    Node* node1 = new Node(1);
+    Node* node2 = new Node(2);
+    Node* node3 = new Node(3);
+    Node* node4 = new Node(4);
+    Node* node5 = new Node(5);
+    Node* node6 = new Node(6);
+    Node* node7 = new Node(7);
+    Node* node8 = new Node(8);
+    node1->left = node2;
+    node1->right = node3;
+    node2->right = node4;
+    node4->left = node6;
+    node6->right = node8;
+    node3->left = node5;
+    node5->right = node7;
+    */
+    Node n1(1), n2(2), n3(3), n4(4), n5(-5), n6(6), n7(7), n8(8);
+    n1.left = &n2;
+    n1.right = &n3;
+    n2.right = &n4;
+    n4.left = &n6;
+    n6.right = &n8;
+    n3.left = &n5;
+    n5.right = &n7;
+    
+    vector<int> a;
+    for (int i = 1; i < argc; ++i) {
+        a.push_back(atoi(argv[i]));
+    }
+    Solution s;
+    vector<int> res = s.printTreeNodesInOneLevel(&n1, 2);
+    for (size_t i = 0; i < res.size(); ++i) {
+        cout << res[i] << " ";
+    }
+    return 0;
+}
+
