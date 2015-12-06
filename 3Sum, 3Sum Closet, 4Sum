@@ -1,0 +1,253 @@
+3Sum
+
+Given an array S of n integers, are there elements a, b, c in S such that a + b + c = 0? Find all unique triplets in the array which gives the sum of zero.
+
+Note:
+Elements in a triplet (a,b,c) must be in non-descending order. (ie, a ≤ b ≤ c)
+The solution set must not contain duplicate triplets.
+    For example, given array S = {-1 0 1 2 -1 -4},
+
+    A solution set is:
+    (-1, 0, 1)
+    (-1, -1, 2)
+
+
+This is an extension of the 2Sum problem. The idea is pretty simple (even no need to use hash). Sort the array and then starting from the first element, set two pointers left and right: one after the current element and the other at the end of the tail. If all the three elements sum to 0, then they are an answer. Add them to the result. Then you need to be careful to skip the duplicates! If you pay enough attention to the details, this problem has a fairly straightforward implementation without too many tricks.
+
+The final code is as follows.
+
+Question: Determine if any 3 integers in an array sum to 0.
+Note: The following solutions assumes that repetitions (i.e. choosing the same array element more than once) are *allowed*, so the array [-5,1,10] contains a zero sum (-5-5+10) and so does [0] (0+0+0). The same question can be asked without allowing repetitions, with some modifications to the proposed solutions (especially sorted_ and hashtable_). Make sure the solutions you get respect whatever flavor you choose to ask.
+
+Think and talk:
+1) Suppose the input array is . 3SUM can be solved in  time on average by inserting each number  into a hash table, and then for each index and , checking whether the hash table contains the integer .
+2) Alternatively, the algorithm below first sorts the input array and then tests all possible pairs in a careful order that avoids the need to binary search for the pairs in the sorted list, achieving worst-case  time, as follows
+
+
+//最优的解法
+//time complexity is O(n^2), space complexity is O(1)
+class Solution {
+public:
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        vector<vector<int> > res;
+        if (nums.size() < 3) return res;
+        sort(nums.begin(), nums.end());
+        for (int i = 0; i <= nums.size() - 3; ++i) {
+            if (i > 0 && nums[i] == nums[i-1]) continue; // avoid duplicates
+            int j = i + 1, k = nums.size() - 1;
+            while (j < k) {
+                if (nums[i] + nums[j] + nums[k] == 0) { //这一步执行完了以后k--
+                    if ((j == i+1 || nums[j] != nums[j-1]) && (k == nums.size() - 1 || nums[k] != nums[k+1])) { //avoid duplicates
+                        res.push_back({nums[i], nums[j], nums[k]});
+                    }
+                }
+                if (nums[i] + nums[j] + nums[k] < 0) { //这里巧妙的用了if,而不是else if
+                    j++;
+                } else {  //这里意味着nums[i] + nums[j] + nums[k] >= 0,
+                    k--;
+                }
+            }
+        }
+        return res;
+    }
+};
+Technically, the sorted array is O(n) extra space (even if you sort in place, I'd consider that extra space since it's space you're using for the computation). Bonus point if the candidate points this out.
+
+
+The following example shows this algorithm's execution on a small sorted array. Current values of a are shown in green, values of b and c are shown in red.
+
+ -25 -10 -7 -3 2 4 8 10  (a+b+c==-25)
+ -25 -10 -7 -3 2 4 8 10  (a+b+c==-22)
+ . . .
+ -25 -10 -7 -3 2 4 8 10  (a+b+c==-7)
+ -25 -10 -7 -3 2 4 8 10  (a+b+c==-7)
+ -25 -10 -7 -3 2 4 8 10  (a+b+c==-3)
+ -25 -10 -7 -3 2 4 8 10  (a+b+c==2)
+ -25 -10 -7 -3 2 4 8 10  (a+b+c==0)
+The correctness of the algorithm can be seen as follows. Suppose we have a solution a + b + c = 0. Since the pointers only move in one direction, we can run the algorithm until the leftmost pointer points to a. Run the algorithm until either one of the remaining pointers points to b or c, whichever occurs first. Then the algorithm will run until the last pointer points to the remaining term, giving the affirmative solution.
+
+或者直接这么写，一样的，两个else,相等时，不管有没有duplicates, 两个pointer均向中间走
+class Solution {
+public:
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        vector<vector<int> > res;
+        if (nums.size() < 3) return res;
+        sort(nums.begin(), nums.end());
+        for (int i = 0; i <= nums.size() - 3; ++i) {
+            if (i > 0 && nums[i] == nums[i-1]) continue; // avoid duplicates
+            int j = i + 1, k = nums.size() - 1;
+            while (j < k) {
+                if (nums[i] + nums[j] + nums[k] == 0) {
+                    if ((j == i+1 || nums[j] != nums[j-1]) && (k == nums.size() - 1 || nums[k] != nums[k+1])) { //avoid duplicates
+                        res.push_back({nums[i], nums[j], nums[k]});
+                    }
+                    j++;
+                    k--; 
+                } else if (nums[i] + nums[j] + nums[k] < 0) { 
+                    j++;
+                } else { //这里意味着nums[i] + nums[j] + nums[k] > 0
+                    k--;
+                }
+            }
+        }
+        return res;
+    }
+};
+
+
+或者这么写，也AC了， 并且很多人votes
+http://www.cnblogs.com/jcliBlogger/p/4566891.html
+https://leetcode.com/discuss/23595/share-my-solution-around-50ms-with-explanation-and-comments
+https://leetcode.com/discuss/38418/20-lines-68ms-c-solution-used-two-pointers-similar-to-2sum
+
+class Solution {
+public:
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        vector<vector<int> > res;
+        if (nums.size() < 3) return res;
+        sort(nums.begin(), nums.end());
+        for (int i = 0; i <= nums.size() - 3; ++i) {
+            int j = i + 1, k = nums.size() - 1;
+            while (j < k) {
+                if (nums[i] + nums[j] + nums[k] == 0) {
+                    vector<int> tmp(3);
+                    tmp[0] = nums[i];
+                    tmp[1] = nums[j];
+                    tmp[2] = nums[k];
+                    res.push_back(tmp);
+
+					// Processing duplicates of Number 2
+                    while (j < k && nums[j] == tmp[1]) j++; // Rolling the front pointer to the next different number forwards
+ 
+					// Processing duplicates of Number 3	                
+                    while (j < k && nums[k] == tmp[2]) k--; // Rolling the back pointer to the next different number backwards
+
+                } else if (nums[i] + nums[j] + nums[k] < 0) {
+                    j++;
+                } else {
+                    k--;
+                }
+            }
+			// Processing duplicates of Number 1
+            while (i + 1 < nums.size() && nums[i] == nums[i+1]) {
+                i++;
+            }
+        }
+        return res;
+    }
+};
+
+3Sum Closest 
+
+Given an array S of n integers, find three integers in S such that the sum is closest to a given number, target. Return the sum of the three integers. You may assume that each input would have exactly one solution.
+
+    For example, given array S = {-1 2 1 -4}, and target = 1.
+
+    The sum that is closest to the target is 2. (-1 + 2 + 1 = 2).
+
+//similar to 3sum, taking O(n^2) time complexity
+//maintain a variable for the sum that is closet to target
+class Solution {
+public:
+    int threeSumClosest(vector<int>& nums, int target) {
+        if (nums.size() < 3) return 0;
+        sort(nums.begin(), nums.end());
+        int res = nums[0] + nums[1] + nums[2];
+        for (int i = 0; i < nums.size() - 2; i++) {
+            int j = i + 1, k = nums.size() - 1;
+            while (j < k) {
+                if (abs(nums[i] + nums[j] + nums[k] - target) <= abs(target - res)) {
+                    res = nums[i] + nums[j] + nums[k];
+                }
+                if (nums[i] + nums[j] + nums[k] < target) {
+                    j++;
+                } else {
+                    k--;
+                }
+            }
+        }
+        return res;
+    }
+};
+
+或者这么写，是一样的 http://www.cnblogs.com/jcliBlogger/p/4567740.html
+class Solution {
+public:
+    int threeSumClosest(vector<int>& nums, int target) {
+        if (nums.size() < 3) {
+            return accumulate(nums.begin(), nums.end(), 0); //第三个元素是累加的初值
+        } //accumulate带有三个形参：头两个形参指定要累加的元素范围，第三个形参则是累加的初值
+        sort(nums.begin(), nums.end());
+        int res = nums[0] + nums[1] + nums[2];
+        for (int i = 0; i < nums.size() - 2; i++) {
+            int j = i + 1, k = nums.size() - 1;
+            while (j < k) {
+                int tmp = nums[i] + nums[j] + nums[k];
+                if (abs(tmp - target) < abs(res - target)) {
+                    res = tmp;
+                }
+                if (tmp == target) { //这两个if顺序不能反，否则wrong answer
+                    return res;
+                }
+                if (tmp > target) {
+                    k--;
+                } else {
+                    j++;
+                }
+            }
+        }
+        return res;
+    }
+};
+/*
+This problem is very similar to 3Sum. You only need to maintain a variable for the sum that is closet to target. Also, some corner cases need to be handled; for example, nums does not have more than 2 elements.
+
+*/
+
+4Sum 
+
+Given an array S of n integers, are there elements a, b, c, and d in S such that a + b + c + d = target? Find all unique quadruplets in the array which gives the sum of target.
+
+Note:
+Elements in a quadruplet (a,b,c,d) must be in non-descending order. (ie, a ≤ b ≤ c ≤ d)
+The solution set must not contain duplicate quadruplets.
+    For example, given array S = {1 0 -1 0 -2 2}, and target = 0.
+
+    A solution set is:
+    (-1,  0, 0, 1)
+    (-2, -1, 1, 2)
+    (-2,  0, 0, 2)
+
+思路：O(n^3) time space, it iscubic
+Well, this problem has a O(n^3) solution similar to 3Sum. That is, fix two elements nums[i] and nums[j] (i < j) and search in the remaining array for two elements that sum to the target - nums[i] - nums[j]. Since i and j both have O(n) possible values and searching in the remaining array for two elements (just like 3Sum that fixes one and search for two other) has O(n) complexity using two pointers (left and right), the total time complexity is O(n^3).
+
+class Solution {
+public:
+    vector<vector<int>> fourSum(vector<int>& nums, int target) {
+        vector<vector<int> > res;
+        if (nums.size() < 4) return res;
+        sort(nums.begin(), nums.end());
+        for (int i = 0; i < nums.size() - 3; ++i) {
+            if (i > 0 && nums[i] == nums[i-1]) continue;
+            for (int j = i+1; j < nums.size(); ++j) {
+                if (j > i+1 && nums[j] == nums[j-1]) continue;
+                int twosum = target - nums[i] - nums[j];
+                int l = j + 1, r = nums.size() - 1;
+                while (l < r) {
+                    int sum = nums[l] + nums[r];
+                    if (sum == twosum) {
+                        if ((l == j+1 || nums[l] != nums[l-1]) && (r == nums.size() - 1) || (nums[r] != nums[r+1])) {
+                            res.push_back({nums[i], nums[j], nums[l], nums[r]});
+                        }
+                        l++; r--;
+                    } else if (sum < twosum) {
+                        l++;
+                    } else {
+                        r--;
+                    }
+                } 
+            }
+        }
+        return res;
+    }
+};
