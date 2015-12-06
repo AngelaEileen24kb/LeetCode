@@ -1,0 +1,83 @@
+Alien Dictionary
+http://www.cnblogs.com/jcliBlogger/p/4758761.html
+https://leetcode.com/discuss/54188/16-18-lines-python-29-lines-c
+
+Problem Description:
+
+There is a new alien language which uses the latin alphabet. However, the order among letters are unknown to you. You receive a list of words from the dictionary, wherewords are sorted lexicographically by the rules of this new language. Derive the order of letters in this language.
+
+For example,
+Given the following words in dictionary,
+
+[
+  "wrt",
+  "wrf",
+  "er",
+  "ett",
+  "rftt"
+]
+The correct order is: "wertf".
+
+Note:
+
+You may assume all letters are in lowercase.
+If the order is invalid, return an empty string.
+There may be multiple valid order of letters, return any one of them is fine.
+
+Well, this problem is not that easy. First you may need some clarifications about the problem itself. If you do, you may refer to this post for a nice example which illustrates the purpose of this problem.
+
+Moreover, you need to understand graph representation, graph traversal and specifically, topological sort, which are all needed to solve this problem cleanly.
+
+https://leetcode.com/discuss/53997/the-description-is-wrong
+The description said the words are sorted lexicographically, not the individual letters. As an example, consider these words from the English dictionary:
+
+game,
+zebra,
+zoo
+See? The word zoo doesn't imply the ordering z < o.
+
+I just realized that it's really the word "lexicographically" that should be pointed out, not the word "words". If it were "words are sorted", it would be like "lists are sorted", and for that you'd probably think the other way, that each list is sorted on its own. It's really the word "lexicographically" that makes the difference, as sorting the letters inside an individual word has nothing to do with lexicographical sorting.
+
+
+string alienOrder(vector<string>& words) {
+	map<char, set<char>> graph;
+	map<char, int> indegree; // int indegree[256] = {0};
+	set<char> chars;  //set只能插入不重复的元素
+
+	for (int i = 0; i < words.size() - 1; ++i) {
+		chars.insert(words[i].begin(), words[i].end());
+		int len = min(words[i].size(), words[i+1].size());
+		for (int j = 0; j < len; ++j) {
+			if (words[i][j] != words[i+1][j]) {
+				graph[words[i][j]].insert(words[i+1][j]);
+				indegree[words[i+1][j]]++;
+				break;
+			}
+		}
+	}
+	string res;
+	queue<char> q;
+	for (char c : chars) {
+		if (indegree[c]] == 0) {
+			q.push(c);
+		}
+	}
+	while (!q.empty()) {
+		char u = q.front();
+		q.pop();
+		res += u;
+		for (auto v : graph[u]) {
+			--indegree[v];
+			if (indegree[v] == 0) {
+				q.push(v);
+			}
+		}
+	}
+	return res.size() == chars.size() ? res : "";
+}
+
+http://www.geeksforgeeks.org/given-sorted-dictionary-find-precedence-characters/
+Time Complexity: The first step to create a graph takes O(n + alhpa) time where n is number of given words and alpha is number of characters in given alphabet. The second step is also topological sorting. Note that there would be alpha vertices and at-most (n-1) edges in the graph. The time complexity of topological sorting is O(V+E) which is O(n + aplha) here. So overall time complexity is O(n + aplha) + O(n + aplha) which is O(n + aplha).
+
+Exercise:
+The above code doesn’t work when the input is not valid. For example {“aba”, “bba”, “aaa”} is not valid, because from first two words, we can deduce ‘a’ should appear before ‘b’, but from last two words, we can deduce ‘b’ should appear before ‘a’ which is not possible. Extend the above program to handle invalid inputs and generate the output as “Not valid”.
