@@ -61,6 +61,3 @@ int threeSumSmaller(vector<int>& nums, int target) {
 	}
 	return count;
 }
-
-
-
