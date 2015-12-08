@@ -1,0 +1,73 @@
+Best Time to Buy and Sell Stock 只能交易一次
+
+Say you have an array for which the ith element is the price of a given stock on day i.
+
+If you were only permitted to complete at most one transaction (ie, buy one and sell one share of the stock), design an algorithm to find the maximum profit.
+
+方法1:类似Maximum Subarray 
+/*
+The logic to solve this problem is same as "max subarray problem" using Kadane's Algorithm. Since no body has mentioned this so far, I thought it's a good thing for everybody to know.
+
+All the straight forward solution should work, but if the interviewer twists the question slightly by giving the difference array of prices, Ex: for {1, 7, 4, 11}, if he gives {0, 6, -3, 7}, you might end up being confused.
+
+Here, the logic is to calculate the difference (maxCur += prices[i] - prices[i-1]) of the original array, and find a contiguous subarray giving maximum profit. If the difference falls below 0, reset it to zero.
+
+*maxCur = current maximum value
+
+*maxSoFar = maximum value found so far
+*/
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int maxCur = 0, maxSoFar = 0;
+        for (int i = 1; i < prices.size(); ++i) {
+            maxCur = max(0, maxCur += prices[i] - prices[i-1]);
+            maxSoFar = max(maxCur, maxSoFar);
+        }
+        return maxSoFar;
+    }
+};
+方法2:每一次维护最大profit和截止目前为止的最小的price
+The question: Given predicted stock prices for next n days for a stock e.g : 20, 40, 52, 15, 30, 50, 10, 25 find the maximum profit that can be made with a single buy-sell transaction. If no profit can be made return 0. In the example buying at 15 and selling at 50 gives price. Note that the two prices are neither minimum nor maximum in the array.
+只能买卖一次
+The O(n) solution requires a bit of dynamic programming thinking. Suppose we have solved the problem for the first k elements, the maximum profit for the first k+1 elements is the greater number between the solution for the first k element and the (k+1)th element minus the smallest element in the first k elements.
+
+// each time we update the max profit and min price so far;
+
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        if (prices.empty()) return 0;
+        int curmin = prices[0], profit = 0;
+        for (int i = 1; i < prices.size(); ++i) {
+            profit = max(profit, prices[i] - curmin);
+            curmin = min(curmin, prices[i]); //这两行调换位置不影响结果，都是对的
+        }
+        return profit;
+    }
+};
+
+
+Best Time to Buy and Sell Stock II
+
+Say you have an array for which the ith element is the price of a given stock on day i.
+
+Design an algorithm to find the maximum profit. You may complete as many transactions as you like (ie, buy one and sell one share of the stock multiple times). However, you may not engage in multiple transactions at the same time (ie, you must sell the stock before you buy again).
+
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int res = 0;
+        //if (prices.size() == 1) return res;这句话可以不要
+        for (int i = 1; i < prices.size(); ++i) {
+            res += max(0, prices[i] - prices[i-1]);
+        }
+        return res;
+    }
+};
+/*
+if prices[i] > prices[i-1], add prices[i] - prices[i-1] to the answer.
+For ascending order [1,2,4], (4 - 1) == (2 - 1) + (4 - 2).
+suppose the first sequence is "a <= b <= c <= d", the profit is "d - a = (b - a) + (c - b) + (d - c)" without a doubt. And suppose another one is "a <= b >= b' <= c <= d", the profit is not difficult to be figured out as "(b - a) + (d - b')". So you just target at monotone sequences.
+只关心单调序列就好了
+*/
