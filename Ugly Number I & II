@@ -1,0 +1,72 @@
+Ugly Number 
+
+Write a program to check whether a given number is an ugly number.
+
+Ugly numbers are positive numbers whose prime factors only include 2, 3, 5. For example, 6, 8 are ugly while 14 is not ugly since it includes another prime factor 7.
+
+Note that 1 is typically treated as an ugly number.
+
+class Solution {
+public:
+    bool isUgly(int num) {
+        if (num == 0) return false;
+        while (num % 2 == 0) {
+            num /= 2;
+        }
+        while (num % 3 == 0) {
+            num /= 3;
+        }
+        while (num % 5 == 0) {
+            num /= 5;
+        }
+        return num == 1;
+    }
+};
+/*
+It is linear time complexity. The number of iteration for those 3 while loops depend on how many prime factors compose the input. For example, if the input consists of k prime factors, then the while loops iterates k times. So, I think the complexity is O(k).
+*/
+
+Ugly Number II
+
+Write a program to find the n-th ugly number.
+
+Ugly numbers are positive numbers whose prime factors only include 2, 3, 5. For example, 1, 2, 3, 4, 5, 6, 8, 9, 10, 12 is the sequence of the first 10 ugly numbers.
+
+Note that 1 is typically treated as an ugly number.
+
+Hint:
+
+The naive approach is to call isUgly for every number until you reach the nth one. Most numbers are not ugly. Try to focus your effort on generating only the ugly ones.
+An ugly number must be multiplied by either 2, 3, or 5 from a smaller ugly number.
+The key is how to maintain the order of the ugly numbers. Try a similar approach of merging from three sorted lists: L1, L2, and L3.
+Assume you have Uk, the kth ugly number. Then Uk+1 must be Min(L1 * 2, L2 * 3, L3 * 5).
+
+class Solution {
+public:
+    int nthUglyNumber(int n) {
+        if (n <= 0) return 0;       // get rid of corner cases 
+        int t2 = 0, t3 = 0, t5 = 0;  //pointers for 2, 3, 5
+        vector<long long> k(n);   //in case of overflow of the int range,所以不用vector<int> k(n)
+        k[0] = 1;
+        for (int i = 1; i < n; ++i) {
+            k[i] = min(k[t2]*2, min(k[t3]*3, k[t5]*5));
+            if (k[i] == k[t2] * 2) t2++;
+            if (k[i] == k[t3] * 3) t3++;
+            if (k[i] == k[t5] * 5) t5++;
+        }
+        return k[n-1];
+    }
+};
+/*
+We have an array k of first n ugly number. We only know, at the beginning, the first one, which is 1. Then
+
+k[1] = min( k[0]*2, k[0]*3, k[0]*5). The answer is k[0]*2. So we move 2's pointer to 1. Then we test:
+
+k[2] = min( k[1]*2, k[0]*3, k[0]*5). And so on. Be careful about the cases such as 6, in which we need to forward both pointers of 2 and 3.
+
+Actually, the input space is much smaller than expected if we insist an int range output. When input n is greater than 1691, the output overflows the int range.
+Another way to view this bound is that all ugly numbers must be in the form 2^a*3^b*5^c. Since we have log2(Integer.MAX_VALUE)=a<31, log3(Integer.MAX_VALUE)=b<20 and log5(Integer.MAX_VALUE)=c<14, the combination allowed is surely under 31*20*14~=8400.
+So ugly number is sparser than one would usually think, and please do take care of overflow.
+
+*/
+
