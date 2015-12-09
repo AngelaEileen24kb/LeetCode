@@ -1,0 +1,92 @@
+http://www.geeksforgeeks.org/run-length-encoding/
+
+Given an input string, write a function that returns the Run Length Encoded string for the input string.
+
+For example, if the input string is “wwwwaaadexxxxxx”, then the function should return “w4a3d1e1x6″.
+
+char *encode(char *src) {
+	int rlen;
+	int n = strlen(src);
+
+	char dest[2n+1];
+	int i = 0, j = 0;
+
+	while (i < n) {
+		dest[j++] = src[i++];
+		rlen = 1;
+		while (i < n && src[i] == src[i-1]) {
+			rlen++;
+			i++;
+		}
+		dest[j++] = rlen;
+	}
+	dest[j] = '\0';
+	return dest;
+}
+Time Complexity: O(n)
+
+为了能够decode这个string,我给每一个字母encode之后加一个哨兵"@"(sentinel),作为区分不同字母的符号,
+代码如下:
+string encode(string src) {
+    string res;
+    int i = 0, n = src.size();
+    int rlen;
+    while (i < n) {
+        res += src[i++];
+        rlen = 1;
+        while (i < n && src[i] == src[i++]) {
+            rlen++;
+            i++;
+        }
+        res += rlen;
+        res += "@";
+    }
+    return res;
+}
+“wwwwaaadexxxxxx”encode之后变为“w4@a3@d1@e1@x6@”
+string decode(string dest) {
+    string res;
+    int i = 0, n = dest.size();
+    while (i < n) {
+        res += dest[i++];   //当前字母是要decode的字符的首字母
+        int pos = dest.find_first_of('@', i);
+        int len = stoi(dest.substr(i, pos - i));
+        for (int j = 1; j < len; ++j) { //len-1个
+            res += dest[i-1];
+        }
+        i += len + 1;  //跳过sentinel和字符长度,到下一个字母
+    }
+    return res;
+}
+“w4@a3@d1@e1@x6@” decode之后又变为“wwwwaaadexxxxxx”
+参考leetcode Encode and Decode Strings(加锁)
+
+Count and Say
+
+The count-and-say sequence is the sequence of integers beginning as follows:
+1, 11, 21, 1211, 111221, ...
+
+1 is read off as "one 1" or 11.
+11 is read off as "two 1s" or 21.
+21 is read off as "one 2, then one 1" or 1211.
+
+class Solution {
+public:
+    string countAndSay(int n) {
+        string res = "1";
+        for (int i = 2; i <= n; ++i) {
+            stringstream ss;
+            int j = 0, N = res.size();
+            while (j < N) {
+                int k = j + 1;
+                while (k < N && res[k] == res[j]) {
+                    k++;
+                }
+                ss << (k - j) << res[j];
+                j = k;
+            }
+            ss >> res;
+        }
+        return res;
+    }
+};
