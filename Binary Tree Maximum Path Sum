@@ -1,0 +1,113 @@
+Binary Tree Maximum Path Sum
+
+Given a binary tree, find the maximum path sum.
+
+The path may start and end at any node in the tree.
+
+For example:
+Given the below binary tree,
+
+       1
+      / \
+     2   3
+Return 6.
+
+eg：
+       10
+      /  \
+     2   10
+    / \    \
+   20  1   -25
+            / \
+           3   4
+Maximum Path Sum is : 42 (20 + 2 + 10 + 10 + 0)
+
+/**
+ * Definition for binary tree
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+
+//时间复杂度:O(n)
+class Solution {
+public:
+    int maxPathSum(TreeNode* root) {
+        int res = INT_MIN; //这里千万要记住，不能写成res = 0, 必须是res = INT_MIN;
+        dfs(root, res);
+        return res;
+    }
+    int dfs(TreeNode *node, int &res) {
+        if (node == NULL) return 0;
+        int l = dfs(node->left, res);
+        int r = dfs(node->right, res);
+        if (l < 0) l = 0;   //这两句话不能省略，否则会出错，
+        if (r < 0) r = 0;   //因为最后要return node->val += max(l, r);
+        if (l + r + node->val > res) {
+            res = l + r + node->val;
+        }
+        return node->val += max(l, r);
+    }
+};
+
+/*
+update the val of each node of the tree bottom-up, the new val of TreeNode *x stands for the max sum started from any node in subtree x and ended in x, mataining the res for result in traversal at the same time.
+*/
+
+最原始的写法：
+class Solution {
+public:
+    int maxPathSum(TreeNode *root) {
+        int res = INT_MIN;
+        maxPathSumRe(root, res);
+        return res;
+    }
+    int maxPathSumRe(TreeNode *node, int &res) {
+        if (!node) return 0;
+        int left = maxPathSumRe(node->left, res);
+        int right = maxPathSumRe(node->right, res);
+        int sum = max(node->val, max(left, right) + node->val);
+        res = max(res, max(0, left) + max(0, right) + node->val);
+        return sum;
+    }
+};
+
+geeksforgeeks的写法:http://www.geeksforgeeks.org/find-maximum-path-sum-in-a-binary-tree/
+思路,非常好的讲解:
+For each node there can be four ways that the max path goes through the node:
+1. Node only
+2. Max path through Left Child + Node
+3. Max path through Right Child + Node
+4. Max path through Left Child + Node + Max path through Right Child
+
+The idea is to keep trace of four paths and pick up the max one in the end. An important thing to note is, root of every subtree need to return maximum path sum such that at most one child of root is involved. This is needed for parent function call. In below code, this sum is stored in ‘max_single’ and returned by the recursive function.
+
+int findMaxPathSum(TreeNode *root) {
+    int res = INT_MIN;
+    dfs(root, res);
+    return res;
+}
+int dfs(TreeNode *root, int &res) {
+    if (root == NULL) return 0;
+
+    // l and r store maximum path sum going through left and
+    // right child of root respectively
+    int l = dfs(root->left, res);
+    int r = dfs(root->right, res);
+
+    // Max path for parent call of root. This path must
+    // include at-most one child of root
+    int max_single = max(max(l, r) + root->val, root->val);
+
+    // Max Top represents the sum when the Node under
+    // consideration is the root of the maxsum path and no
+    // ancestors of root are there in max sum path
+    int max_top = max(max_single, l + r + root->val);
+
+    res = max(res, max_top);  // Store the Maximum Result.
+    return max_single;
+}
+Time Complexity: O(n) where n is number of nodes in Binary Tree.
