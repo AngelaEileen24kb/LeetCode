@@ -1,0 +1,149 @@
+Count Univalue Subtree,即就是Count of Single Valued Subtrees
+计算一个tree里面的同值子树的个数
+
+It was important for me to realize that: (a) when determining whether a subtree is univalue or not, we don't have to store the value it might be univalue with, since it's already stored at its root, so just the bool indicator is enough; (b) the counter has better to be stored separately from the recursion stack, and used as an accumulator rather than a return value we'd later sum between left and right subtrees.
+
+So the considerations above led to the following transparent solution:
+
+int countUnivalueSubtree(TreeNode *root) {
+	int count = 0;
+	helper(root, count);
+	return count;
+}
+bool helper(TreeNode *node, int &count) {
+	if (node == NULL) return true;
+	bool left = helper(node->left, count);
+	bool right = helper(node->right, count);
+	if (left && right) {
+		if (node->left != NULL && node->val != node->left->val) {
+			return false;
+		}
+		if (node->right != NULL && node->val != node->right->val) {
+			return false;
+		}
+		count++;
+		return true;
+	}
+	return false;
+}
+
+geeksforgeeks上有详细的解答,如下:
+Find Count of Single Valued Subtrees
+http://www.geeksforgeeks.org/find-count-of-singly-subtrees/
+
+Given a binary tree, write a program to count the number of Single Valued Subtrees. A Single Valued Subtree is one in which all the nodes have same value. Expected time complexity is O(n).
+
+Example:
+
+Input: root of below tree
+              5
+             / \
+            1   5
+           / \   \
+          5   5   5
+Output: 4
+There are 4 subtrees with single values.
+
+
+Input: root of below tree
+              5
+             / \
+            4   5
+           / \   \
+          4   4   5                
+Output: 5
+There are five subtrees with single values.
+
+A Simple Solution is to traverse the tree. For every traversed node, check if all values under this node are same or not. If same, then increment count. Time complexity of this solution is O(n^2).
+
+An Efficient Solution is to traverse the tree in bottom up manner. For every subtree visited, return true if subtree rooted under it is single valued and increment count. So the idea is to use count as a reference parameter in recursive calls and use returned values to find out if left and right subtrees are single valued or not.
+思路: 用count作递归的参数,bottom up的方式
+
+代码如下: 感觉这个代码最好:
+时间复杂度:O(n),n是binary tree中结点的个数
+int countSingle(TreeNode *root) {
+    int count = 0;
+    dfs(root, count);  //calls dfs after initializing count as 0
+    return count;
+}
+// This function increments count by number of single valued subtrees under root.  
+// It returns true if subtree under root is Singly, else false.
+bool dfs(TreeNode *root, int &count) {
+    if (root == NULL) return true;
+    bool left = dfs(root->left, count);
+    bool right = dfs(root->right, count);
+    if (left == false || right == false) {
+        return false;    
+    }
+    if (root->left && root->val != root->left->val) {
+        return false;    // If left subtree is singly and non-empty, but data doesn't match
+    }
+    if (root->right && root->val != root->right->val) {
+        return false;       // Same for right subtree
+    }
+    count++;
+    return true;
+}
+Time complexity of this solution is O(n) where n is number of nodes in given binary tree.
+
+
+或者这么写，一样的：
+https://leetcode.com/discuss/52210/c-one-pass-recursive-solution
+
+int countUnivalueSubtree(TreeNode *root) {
+	int count = 0;
+	helper(root, count);
+	return count;
+}
+bool helper(TreeNode *node, int &count) {
+	if (node == NULL) return true;
+	bool left = helper(node->left, count);
+	bool right = helper(node->right, count);
+	if (left && right && ((root->left == NULL) || (root->left->val == root->val)) && ((root->right == NULL) || (root->right->val == root->val))) {
+		count++;
+		return true;
+	}
+	return false;
+}
+
+https://leetcode.com/discuss/50420/java-11-lines-added
+下面的解法个人有点问题，为什么最开始all里面传入的val的参数是0？
+Helper all tells whether all nodes in the given tree have the given value. And while doing that, it also counts the uni-value subtrees.
+int countUnivalueSubtree(TreeNode *root) {
+	int count = 0;
+	all(root, 0);
+	return count;
+}
+bool helper(TreeNode *node, int val) {
+	if (node == NULL) return true;
+	if (!(helper(node->left, node->val) | (!helper(node->right, node->val))) {
+		return false;
+	}
+	count++;
+	return node->val == val;
+}
+
+Discuss:
+Hi, Stefan. Really amazing code! I am still playing with it to see its mechanism :-) A little question: why replacing | with || gives the wrong answer?
+
+Update: I now see that | does not short-circuit the right operand and thus the counting will be on, right?
+
+Yes, I only do that so everything gets counted like it should. One of those rare cases where you don't want short-circuiting 
+
+I have a question about one test case. What if the tree looks like: 5(left) - 5 - 5 (right)
+
+then based on definition the correct answer should be 2 (the left one plus right one), but the code will return 3. Can you give a explanation.
+
+You forgot to count the whole tree.
+
+I got it, thx.
+
+I do not think the question give a clear description, instead of using word subtree, I think tree will be more appropriate
+
+Well, according to the definiton of subtree here: A subtree of a tree T is a tree consisting of a node in T and all of its descendants in T, the whole tree is also a subtree of itself.
+
+cool, thanks for the wiki
+
+Yes, that's standard terminology. The whole tree is a subtree of itself just like for example "abc" is a substring of "abc" and {1,2,3} is a subset of {1,2,3}. What you were thinking of is called "proper" subtree/substring/subset.
+
+yeah, right, thx, :D
