@@ -1,0 +1,118 @@
+Remove Node in Binary Search Tree
+
+Given a root of Binary Search Tree with unique value for each node.  Remove the node with given value. If there is no such a node with given value in the binary search tree, do nothing. You should keep the tree still a binary search tree after removal.
+
+Example
+Given binary search tree:
+
+          5
+
+       /    \
+
+    3          6
+
+ /    \
+
+2       4
+
+Remove 3, you can either return:
+
+          5
+
+       /    \
+
+    2          6
+
+      \
+
+         4
+
+or :
+
+          5
+
+       /    \
+
+    4          6
+
+ /   
+
+2
+
+Tags Expand 
+
+LintCode Copyright Binary Search Tree
+
+方法1:
+哎，先来个偷懒的写法吧。分类讨论情况太多了。  T。T
+,时间复杂度:O(n),空间复杂度:O(n),中序遍历栈空间为O(n)，存储节点的空间O(n),递归生成BST的栈空间为O(logn)
+TreeNode *removeNodeINBST(TreeNode *root, int target) {
+    vector<TreeNode *> res;
+    TreeNode *cur = root, *tmp;
+    stack<TreeNode *> stk;
+    while (cur || !stk.empty()) {
+        if (cur) {
+            stk.push(cur);
+            cur = cur->left;
+        } else {
+            cur = stk.top();
+            stk.pop();
+            tmp = cur;
+            cur = cur->right;
+            if (tmp->val != target) {
+                res.push_back(tmp);
+            } else {
+                delete tmp;
+                tmp = NULL;
+            }
+        }
+    }
+    return buildTree(res, 0, (int)res.size() - 1);
+}
+TreeNode *buildTree(vector<TreeNode *>& res, int left, int right) {
+    if (left > right) return NULL;
+    int mid = left + ((right - left) >> 1);
+    res[mid]->left = buildTree(res, left, mid - 1);
+    res[mid]->right = buildTree(res, mid+1, right);
+    return res[mid];
+}
+
+方法2: 都是lintcode AC的, 时间复杂度:O(logn)
+思路就是：找到那个node，左边null, 返回右边； 右边null，返回左边。 都存在，就找右边的最小（lint code方法）／左边的最大（我的方法）
+https://github.com/jke-zq/my_lintcode/blob/master/Remove_Node_in_Binary_Search_Tree.cpp
+
+class Solution {
+public:
+    TreeNode* removeNode(TreeNode* root, int target) {
+        // write your code here
+        if (root == NULL) return nullptr;
+        if (root->val > target) {
+            root->left = removeNode(root->left, target);
+        } else if (root->val < target) {
+            root->right = removeNode(root->right, target);
+        } else {  //root->val == target
+            if (root->left == NULL) {
+                return root->right;
+            } else if (root->right == NULL) {
+                return root->left;
+            } 
+            TreeNode *cp = root;
+            root = findMaxLeft(root->left);
+            root->right = cp->right;
+        }
+        return root;
+    }
+    TreeNode *findMaxLeft(TreeNode *root) {
+        TreeNode *parent;
+        TreeNode *cp = root;
+        while (root && root->right) {
+            parent = root;
+            root = root->right;
+        }
+        if (root != cp) {
+            parent->right = root->left;
+            root->left = cp;
+        }
+        return root;
+    }
+};
