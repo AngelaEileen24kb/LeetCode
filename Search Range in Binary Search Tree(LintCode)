@@ -1,0 +1,106 @@
+LintCode Search Range in Binary Search Tree
+
+中等 二叉查找树中搜索区间
+
+Given two values k1 and k2 (where k1 < k2) and a root pointer to a Binary Search Tree. Find all the keys of tree in range k1 to k2. i.e. print all x such that k1<=x<=k2 and x is a key of given BST. Return all the keys in ascending order.
+
+给定两个值 k1 和 k2（k1 < k2）和一个二叉查找树的根节点。找到树中所有值在 k1 到 k2 范围内的节点。即打印所有x (k1 <= x <= k2) 其中 x 是二叉查找树的中的节点值。返回所有升序的节点值。
+
+样例
+如果有 k1 = 10 和 k2 = 22, 你的程序应该返回 [12, 20, 22].
+
+    20
+   /  \
+  8   22
+ / \
+4   12
+
+思路:
+这个的核心就是DFS，再说就是递归，所以这个题先定义一个递归函数，然后不停的递归判断就可以了，但是这个题要比普通DFS要有一些优化，因为很明显的是，（以root为指针dfs）当root.val < k1 OR root.val > k2 也就是说这个指针已经出了给定的条件了，这时候就没必要再往这个方向DFS了，再往下走结果也不会满足条件了。再仔细的说一下，就是，只有在root<k1或者root>k2的时候，不需要操作，反过来说：root > k1 或者（or）root < k2都需要操作，当root卡在k1，k2之间时候需要添加进result。然后就是这题为了方便DFS加入一个全局变量。 也可以不用全局result，而把result跟着helper函数走一遍就可以。具体的看代码：
+
+
+感觉这个写法更简单一点，但是两种写法都是对的:
+vector<int> searchRange(TreeNode *root, int x, int y) {
+    vector<int> res;
+    helper(root, x, y, res);
+    return res;
+}
+void helper(TreeNode *root, int x, int y, vector<int>& res) {
+    if (root == NULL) return;
+    if (root->val > x) {  //找它的lower bound,类似于中序遍历
+        helper(root->left, x, y, res); //其实还可以做一点改进，helper(root->left, x, min(root->val, y), res);
+    }
+    if (root->val >= x && root->val <= y) {
+        res.push_back(root->val);
+    }
+    if (root->val < y) { //找它的upper bound,类似于中序遍历
+        helper(root->right, x, y);//其实还可以做一点改进，helper(root->right, max(root->val, x), y, res);
+    }
+}
+和上面的一模一样，lintCode AC code:
+class Solution {
+public:
+    vector<int> searchRange(TreeNode* root, int k1, int k2) {
+        vector<int> res;
+        helper(root, k1, k2, res);
+        return res;
+    }
+    void helper(TreeNode *root, int k1, int k2, vector<int>& res) {
+        if (root == nullptr) return;
+        if (k1 < root->val) {     //找它的lower bound,类似于中序遍历
+            helper(root->left, k1, k2, res);    //其实还可以作一点改进,也是AC的
+        }                      // helper(root->left, k1, min(k2, root->val), res);
+        if (k1 <= root->val && root->val <= k2) {
+            res.push_back(root->val);
+        }
+        if (root->val < k2) {  //找它的upper bound,类似于中序遍历
+            helper(root->right, k1, k2, res);  //其实还可以作一点改进,也是AC的
+        }                     // helper(root->right, max(k1, root->val), k2, res);
+    }
+};
+
+最最简洁的写法，非常好,但是面试的时候写上面的更显考虑周全
+vector<int> searchRange(TreeNode *root, int x, int y) {
+    vector<int> res;
+    dfs(root, x, y, res);
+    return res;
+}
+void dfs(TreeNode *root, int x, int y, vector<int>& res) {
+    if (root == NULL) return;
+    dfs(root->left, x, y, res);
+    if (root->val >= x && root->val <= y) {
+        res.push_back(root->val);
+    }
+    dfs(root->right, x, y, res);
+}
+
+迭代写法:
+class Solution {
+public:
+    vector<int> searchRange(TreeNode* root, int k1, int k2) {
+        stack<TreeNode *> stk;
+        vector<int> res;
+    
+        pushLeft(stk, root, k1);
+    
+        while (!stk.empty()) {
+            TreeNode *t = stk.top();
+            stk.pop();
+            if (t->val >= k1 && t->val <= k2) {
+                res.emplace_back(t->val);
+            }
+            if (t->val <= k2) {
+                pushLeft(stk, t->right, k1);
+            }
+        }
+        return res;
+    }
+private:
+    void pushLeft(stack<TreeNode *> &stk, TreeNode *root, int k1) {
+        while (root != nullptr) {
+            stk.emplace(root);  //记住,一定要先把root push到stk里面去,再判断root->val是否小于k
+            if (root->val < k1) break;  //如果先判断break,再push root,可能得不到结果
+            root = root->left;
+        }
+    }
+};
