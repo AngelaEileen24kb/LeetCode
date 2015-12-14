@@ -1,0 +1,71 @@
+[LintCode] Delete Digits
+
+Given string A representative a positive integer which has N digits, remove any k digits of the number, the remaining digits are arranged according to the original order to become a new positive integer. Make this new positive integers as small as possible.
+
+N <= 240 and k <= N,
+
+Example
+Given an integer A="178542", k=4
+
+return a string "12"
+
+http://www.lintcode.com/en/problem/delete-digits/
+
+可能一开始想到的是DFS暴力枚举，但是N大小为240显然暴力的方法并不可取。仔细想想发现其实还是很容易找到规律的，想让一个数字尽可能小，
+那么就要把小的数字尽量放到前面，如果前面有比它大的数字，那么就到把在它前面且比它大的数字都要删除掉，直到已经删掉k个数字。
+剩下的就是一些特殊情况与边界情况了，比如前置0要去掉，如果遍历一遍发现删除的数字还不足k个，那么就把最后的k-cnt个删除掉。
+下面是LintCode AC的代码:
+
+class Solution {
+public:
+    string DeleteDigits(string A, int k) {
+        string s;
+        if (k > A.size()) return s;
+        int cnt = 0;
+        for (int i = 0; i < A.size(); ++i) {
+            while (!s.empty() && s.back() > A[i] && cnt < k) {
+                s.pop_back();
+                cnt++;
+            }
+            if (A[i] != '0' || !s.empty()) { //这句话自动删除了leading zero
+                s.push_back(A[i]);  //eg: 15042, k = 3, remove了1,5,4, 返回2,
+            }
+        }
+        if (cnt < k) {    //删除的数字不足k个时,把最后的k-cnt个删除掉   
+            s.resize(s.size() - k + cnt);
+        }  
+        return s;
+    }
+};
+
+这个写法没有用到额外的空间,时间复杂度也是:O(n),非常好
+class Solution {
+public:
+    string DeleteDigits(string A, int k) {
+        int n = A.size();
+        int cnt = 0;
+        int i = 0;
+        while (i < n - 1) {
+            if (A[i] > A[i+1]) {
+                A.erase(i, 1);
+                if (i > 0) i--;
+                n--;
+                cnt++;
+                if (cnt == k) break;
+            } else {
+                i++;
+            }
+        }
+        if (cnt < k) {   // all ascending, remove last
+            n = A.size();
+            A = A.substr(0, n - (k - cnt));
+        }
+        i = 0, n = A.size();     // Remove leading 0s
+        while (i < n && A[i] == '0') i++;
+        A = A.substr(i);
+        if (A.empty()) {
+            A = "0";
+        }
+        return A;
+    }
+};
