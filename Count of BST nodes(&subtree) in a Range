@@ -1,0 +1,139 @@
+http://www.careercup.com/question?id=5648398726201344
+
+中序遍历,时间复杂度:O(n),空间复杂度:O(logn)
+int getRange(TreeNode *root, int x, int y) {
+    int c = 0;
+    stack<TreeNode *> stk;
+    TreeNode *cur = root;
+    while(!stk.empty() || cur) {
+        if (cur) {
+            stk.push(cur);
+            cur = cur->left;
+        } else {
+            TreeNode *tmp = stk.top();
+            stk.pop();
+            if (tmp->val >= x && tmp->val <= y) {
+                c++;
+            }
+            cur = tmp->right;
+        }
+    }
+    return c;
+}
+void getRange(TreeNode *root, int x, int y, int count) {
+    if (root == NULL) return;
+    if (root->val < x) {
+        getRange(root->right, x, y, count);
+    } else if (root->val > y) {
+        getRange(root->left, x, y, count);
+    } else {
+        count++;
+        getRange(root->left, x, y, count);
+        getRange(root->right, x, y, count);
+    }
+}
+
+或者这么写,是一样的:
+时间复杂度:O(h + k),h是BST的高度,k是在[x, y]范围内的结点个数
+int getCount(TreeNode *root, int x, int y) {
+    if (root == nullptr) return 0;
+    if (root->val == x && root->val == y) return 1;  //这句话可以不要
+    if (root->val >= x && root->val <= y) {
+        return 1 + getCount(root->left, x, y) + getCount(root->right, x, y);
+    } else if (root->val < x) {
+        return getCount(root->right, x, y);
+    } else {
+        return getCount(root->left, x, y);
+    }
+}
+
+这题有点类似Search Range in Binary Search Tree[LintCode]
+int searchRange(TreeNode *root, int k1, int k2) {
+    int count = 0;
+    helper(root, k1, k2, count);
+    return 0;
+}
+void helper(TreeNode *root, int k1, int k2, int &count) {
+    if (root == nullptr) return;
+    if (k1 < root->val) {  //找lower_bound,中序遍历
+        helper(root->left, k1, min(k2, root->val), count);
+    }
+    if (k1 <= root->val && root->val <= k2) {
+        count++;
+    }
+    if (root->val < k2) {  //找upper_bound, 中序遍历
+        helper(root->right, max(k1, root->val), k2, count);
+    }
+}
+
+Is it possible to store additional data with tree node? If so, we can store "count" field in the node that holds the number of elements 
+in the subtree including this element. Then the algorithm can be:
+1. Find the node A where x <= A <= y.
+2. Find the biggest node that is less than x in the A->left subtree. Lets call it LBorder.
+3. Find the smallest node that is greater than y int the A->right subtree. Lets call it RBorder.
+4. The result is: A->count - LBorder->count - RBorder->count.
+
+The complexity is O(log N).
+If it is not possible to store additional info I am afraid the complexity cannot be better than O(N),
+but it's quite easy and not interesting :).
+
+Follow Up:
+http://www.geeksforgeeks.org/count-bst-subtrees-that-lie-in-given-range/
+
+Count BST subtrees that lie in given range
+
+Given a Binary Search Tree (BST) of integer values and a range [low, high], return count of nodes 
+where all the nodes under that node (or subtree rooted with that node) lie in the given range.
+
+Examples:
+
+Input:
+        10
+      /    \
+    5       50
+   /       /  \
+ 1       40   100
+Range: [5, 45]
+Output:  1 
+There is only 1 node whose subtree is in the given range.
+The node is 40 
+
+
+Input:
+        10
+      /    \
+    5       50
+   /       /  \
+ 1       40   100
+Range: [1, 45]
+Output:  3 
+There are three nodes whose subtree is in the given range.
+The nodes are 1, 5 and 40 
+
+思路:
+The idea is to traverse the given Binary Search Tree (BST) in bottom up manner. 
+For every node, recur for its subtrees, if subtrees are in range and the nodes is also in range, 
+then increment count and return true (to tell the parent about its status). 
+Count is passed as a pointer so that it can be incremented across all function calls.
+
+代码:
+int getRangeSubtree(TreeNode *root, int x, int y) {
+    int count = 0;
+    dfs(root, x, y, count);
+    return count;
+}
+bool dfs(TreeNode *root, int x, int y, int &count) {
+    if (root == nullptr) return true;
+
+    // Recur for left and right subtrees
+    bool l = (root->left) ? dfs(root->left, x, y, count) : true;
+    bool r = (root->right) ? dfs(root->right, x, y, count) : true;
+    
+    // If both left and right subtrees are in range and current node
+    // is also in range, then increment count and return true
+    if (l && r && root->val >= x && root->val <= y) {
+        count++;
+        return true;
+    }
+    return false;
+}
