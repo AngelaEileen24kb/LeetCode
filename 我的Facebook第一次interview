@@ -1,0 +1,55 @@
+// Function to get the range sum.
+// Lets take range [7,9] and run your code through the example. Ans should be 24 ?
+// If I call it again with the range [7,9] ? Will it be 24 ? or something else ?
+// What is the complexity of the algorithm ?
+
+// Tree into array. [i, j] => i -> [0, n-1], j -> [0, n-1], i <= j
+// random i,j satistfying above conditions, Sum(j-i) / #NumRanges => O(n)
+// Don't worry about average case. It is O(n).
+
+
+int getRangeSum(Node* root, int low, int high) {
+    // Your code goes here.
+    if (low > high) {
+        return throw invalid_arguments("invalid arguments!");
+    }
+    sum = 0;    // Thanks
+    dfs(root, low, high);
+    return sum; // saif: is this defined ?
+}
+void dfs(Node *root, int low, int high) {
+    if (!root) {
+        return;
+    }
+    if (root->val >= low && root->val <= high) {
+        sum += root->val;
+        dfs(root->left, low, high);
+        dfs(root->right, low, high);
+    } else if (root->val > high){   // this means that the whole range lies on left subtree
+        dfs(root->left, low, high);
+    } else {    // saif: this means that whole range lies on right subtree
+        dfs(root->right, low, high);
+    }
+}
+
+我重新写的
+int getRangeSum(TreeNode *root, int low, int high) {
+	if (low > high) {
+		return throw invalid_arguments("invalid arguments!");
+	}
+	int sum = 0;
+	dfs(root, low, high, sum);
+	return sum;
+}
+void dfs(TreeNode *root, int low, int high, int &sum) {
+	if (root == nullptr) return;
+	if (root->val >= low && root->val <= high) {
+		sum += root->val;
+		dfs(root->left, low, high, sum);
+		dfs(root->right, low, high, sum);
+	} else if (root->val > high) { //means that the whole range lies on left subtree
+		dfs(root->left, low, high, sum);
+	} else {      // this means that whole range lies on right subtree
+		dfs(root->right, low, high, sum);
+	}
+}
