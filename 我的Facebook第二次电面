@@ -1,0 +1,67 @@
+Welcome to Stypi!
+
+Stypi is a realtime editor that allows multiple users to make changes to a single document at the same time. All you need to do is share the URL with others to begin collaborating!
+
+This editor also supports programming languages that you can access by clicking on the "</>" button on the top left. For more information on how to use Stypi please click the FAQ link on the bottom left.
+
+================================
+
+For a given a binary tree, print paths from root to all leaf nodes, one path per line. This is basically a depth-first-traversal with "seen-so-far" memory. For example:
+For tree:
+
+         A
+        / \
+       B   C
+      /   / \
+     D   E   F
+The expected output is:
+
+ABD
+ACE
+ACF
+
+================================
+struct Node {
+    int val;
+    Node *left;
+    Node *right;
+    Node(int x) : val(x), left(NULL), right(NULL) {}
+}
+//Iterative 
+std::vector<std::vector<Node *>> Node::leavesPath(Node *root) {
+//paths
+    std::vector<std::vector<Node *>> paths;
+    if (root) {
+    //path
+        std::vector<Node *> path;
+        // why do you do it for the directed graph not for the tree
+        /**if (std::find(path.begin(), path.end(), root) == path.end()) {
+            path.push_back(root);   
+        */ }
+        Node *pre = NULL;
+        while (!path.empty()) {
+            Node *cur = path.back();
+            if (cur->left == NULL && cur->right == NULL) {
+                paths.push_back(path);
+                path.pop_back();
+            } else if (pre && cur->right == pre) {
+                path.pop_back();
+            } else if (cur->left && cur->left != pre) {
+                if (std::find(path.begin(), path.end(), cur->left) == path.end()) {
+                    path.push_back(cur->left);
+                }
+            } else if (cur->right && cur->right != pre) {
+                if (std::find(path.begin(), path.end(), cur->right) == path.end()) {
+                    path.push_back(cur->right);
+                }
+            } else {
+                path.pop_back();
+            }
+            pre = cur;
+        }
+    }
+    return paths;
+}
+
+https://code.stypi.com/nifhvvoi
+
