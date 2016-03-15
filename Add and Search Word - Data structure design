@@ -1,0 +1,114 @@
+Add and Search Word - Data structure design 
+
+Design a data structure that supports the following two operations:
+
+void addWord(word)
+bool search(word)
+search(word) can search a literal word or a regular expression string containing only letters a-z or .. A . means it can represent any one letter.
+
+For example:
+
+addWord("bad")
+addWord("dad")
+addWord("mad")
+search("pad") -> false
+search("bad") -> true
+search(".ad") -> true
+search("b..") -> true
+
+Note:
+You may assume that all words are consist of lowercase letters a-z.
+
+click to show hint.
+
+You should be familiar with how a Trie works. If not, please work on this problem: Implement Trie (Prefix Tree) first.
+
+class TrieNode {
+public:
+    bool isEnd;
+    TrieNode *children[26];
+    TrieNode() : isEnd(false) {
+        for (int i = 0; i < 26; ++i) {
+            children[i] = NULL;
+        }
+    }
+};
+
+
+class WordDictionary {
+public:
+
+    WordDictionary() {
+        root = new TrieNode();
+    }
+
+    // Adds a word into the data structure.
+    void addWord(string word) {
+        if (word.empty()) return;
+        
+        TrieNode *cur = root;
+        for (int i = 0; i < word.size(); ++i) {
+            int idx = word[i] - 'a';
+            if (cur->children[idx] == NULL) {
+                cur->children[idx] = new TrieNode();
+            }
+            cur = cur->children[idx];
+        }
+        cur->isEnd = true;
+    }
+
+    // Returns if the word is in the data structure. A word could
+    // contain the dot character '.' to represent any one letter.
+    bool search(string word) {
+        int n = word.size();
+        return dfs(word, n, 0, root);
+    }
+    
+    bool dfs(string &word, int n, int pos, TrieNode *cur) {
+        if (cur == NULL) return false;
+        if (pos == n) return cur->isEnd;
+        if (word[pos] == '.') {
+            for (int i = 0; i < 26; ++i) {
+                if (cur->children[i]) {
+                    if (dfs(word, n, pos+1, cur->children[i])) {
+                        return true;   
+                    }
+                }
+            }
+        } else {
+            int idx = word[pos] - 'a';
+            if (cur->children[idx]) {
+                return dfs(word, n, pos+1, cur->children[idx]);
+            }
+        }
+        return false;
+    }
+private:
+    TrieNode *root;
+};
+
+// Your WordDictionary object will be instantiated and called as such:
+// WordDictionary wordDictionary;
+// wordDictionary.addWord("word");
+// wordDictionary.search("pattern");
+
+/*
+http://blog.csdn.net/brucehb/article/details/46783529
+
+具体思路如下：
+
+用Trie树来存储插入的字符串。
+用DFS来搜索Trie树中的字符串。
+为什么这里只能用DFS而不能用BFS呢？
+
+是因为：BFS无法保证下一层查找的结点是否属于当前的父节点。
+
+对于树的搜索算法有 深度优先搜索算法（dfs）和宽度优先搜索算法（bfs）。针对题目的描述，只要能找到一个匹配的，即可返回true。所以，采用dfs，深度挖掘有用信息，只要发现pattern匹配，就结束搜索。（bfs在这里会产生很多冗余的搜索，浪费时间）
+
+设置数据结构，可以存放字符串，可以查询某个字符串是否存储过。并且支持通配符，’.’可以代表任意一个字符。 
+思路： 
+这道题仍旧使用trie树来存放节点。只是在搜索时由于通配符可以适配任一个字符，所以需要采用回溯的方法。匹配到当前字符时，如果遇到’.’，那么就找任一个子孩子，尝试继续寻找下去。
+
+Trie树的详细解析
+http://blog.csdn.net/hguisu/article/details/8131559
+*/
