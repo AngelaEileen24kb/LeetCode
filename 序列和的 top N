@@ -1,0 +1,146 @@
+算法----序列和的 top N
+
+Description:
+
+两个长度为 n 的数组 A 和 B， 各从中选出一个元素相加 A[i] + B[j], 求 top n 小的那些和。
+
+
+
+思路 1：这样的和总共有 n^2 个， 排序，然后取前 n 个。 
+               时间复杂度 O(n^2 lgn)， 空间复杂度 O(n^2) 
+
+
+思路 2：用 最大堆。
+
+     1. 首先用 n 个和建立一个最大堆， 
+
+     2. 然后循环剩余的 n^2 - n 个和，依次与堆顶元素比较（最大值）， 如果小于最大值，则弹出堆顶，push 进入当前的和。
+
+         时间复杂度 O(n^2 lgn), 空间复杂度是 O(n)
+
+
+
+思路3： 还是采用 最小堆，并采用 多路合并 的思路。
+
+   首先，分析多路合并问题： 把 K 个有序数组合并成一个数组。
+
+     1. 将 K 个数组的首元素（最小），建立一个最小堆；
+
+     2. 弹出最小值，并插入新的数组中；将最小值所在的数组的下一个元素插入堆中。这样依次执行下去。
+
+      多路合并的代码见 http://blog.csdn.net/shoulinjun/article/details/19576585
+
+
+
+  回到我们的问题，将 N^2 个 sum 写成如下的形式：
+
+     所有 N^2 个和：(数组 A 和 B 排序后)
+
+          A[0] + B[0] <= A[0] + B[1] <= A[0] + B[2] <= ... <= A[0] + B[n-1]
+
+          A[1] + B[0] <= A[1] + B[1] <= A[1] + B[2] <= ... <= A[1] + B[n-1]
+
+                               ...............................
+
+          A[n-1] + B[0] <= A[n-1] + B[1] <= A[n-1] + B[2] <= ... <= A[n-1] + B[n-1]
+
+    注意： 第一步将数组 A 和 B 排序，则上述的 N 个序列都是有序的。
+
+    Bingo！ 这时就可以采用与 多路合并 同样的算法：
+
+Algorithm:
+
+     1. 将数组 A 和 B 排序；
+     2. 用 上述 N 个序列的首元素（最小），建立一个最小堆；
+
+     3. 弹出最小值，即为 top N；将最小值所在的数组的下一个元素插入堆中。这样执行 N 次， 得到 所有的 top N。
+
+Complexity:
+
+      O(NlgN) + O(N）+ N*O(lgN) = O(NlgN)
+
+Implementation：
+
+     实现细节的话，算法的第 2 步中， 最小值所在的数组的下一个元素如何得到？？ 可以同时记录最小值这个和中所包含的B 中元素的下标。
+
+     下一个元素的值就是 min - B[i] + B[i+1]
+
+vector<int> topKSum(vector<int> &a, vector<int>& b) {
+    vector<int> res;
+    sort(a.begin(), a.end());  // O(nlogn)
+    sort(b.bein(), b.end());
+    auto cmp = [](pair<int, int> a, pair<int, int> b) {
+        return a.first > b.first || (a.first == b.first && a.second > b.second);
+    };    //最小堆greater
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> q; //最小堆greater
+    for (int i = 0; i < a.size(); ++i) {  //O(n)
+        q.push(make_pair(a[i] + b[0], 0));  //0 denotes the index in b
+    }
+    for (int i = 0; i < a.size(); ++i) {
+        pair<int, int> e = q.top();
+        q.pop();
+        res.push_back(e.first);
+        e.first = e.first - B[e.second] + B[e.second + 1];
+        e.second++;
+        q.push(e);  //O(nlogn)
+    }
+} 
+注意：//auto cmp = [](pair<int, int> a, pair<int, int> b) 和greater<pair<int,int>>这两个只要一个就可以了
+
+#include <iostream>  
+#include <vector>  
+#include <utility>  
+#include <queue>  
+#include <algorithm>  
+#include <iterator>  
+using namespace std;  
+  
+//A and B have the same size K  
+vector<int> TopKSum(vector<int> &A, vector<int> &B)  
+{  
+  vector<int> result;  
+  priority_queue<pair<int, int>, vector<pair<int, int> >, greater<pair<int, int> > > Q;   
+  
+  /* sort */  
+  sort(A.begin(), A.end());  
+  sort(B.begin(), B.end());  
+  
+  for(int i=0; i<A.size(); ++i)  
+    Q.push(make_pair(A[i] + B[0], 0)); /* 0 denotes index in B */  
+  
+  for(int i=0; i<A.size(); ++i)  
+  {  
+    pair<int, int> e = Q.top(); Q.pop();  
+    result.push_back(e.first);  
+    /* push next element back into heap */  
+    e.first = e.first - B[e.second] + B[e.second+1];  
+    e.second ++;  
+    Q.push(e);  
+  }  
+  
+  return result;  
+}  
+  
+int main(void)  
+{  
+  vector<int> A, B, sum;  
+  A.push_back(1);  
+  A.push_back(2);  
+  A.push_back(3);  
+  
+  B.push_back(2);  
+  B.push_back(4);  
+  B.push_back(4);  
+  
+  sum = TopKSum(A, B);   
+  /* print vector */  
+  copy(sum.begin(), sum.end(), ostream_iterator<int>(cout, " "));  
+  cout << endl;  
+    
+  return 0;  
+}  
+思考题：
+
+n 个长度为 n 的数组，每个数组中选出一个元素相加, 求 top n 小的那些 sum。
+
+复杂度： n^2 lgn
