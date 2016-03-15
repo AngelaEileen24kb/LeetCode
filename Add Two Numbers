@@ -1,0 +1,96 @@
+Add Two Numbers 
+
+You are given two linked lists representing two non-negative numbers. The digits are stored in reverse order and each of their nodes contain a single digit. Add the two numbers and return it as a linked list.
+
+Input: (2 -> 4 -> 3) + (5 -> 6 -> 4)
+Output: 7 -> 0 -> 8
+ Solution: dummy head...
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode *addTwoNumbers(ListNode *l1, ListNode *l2) {
+        ListNode dummy(0), *cur = &dummy;
+        int carry = 0;
+        while (l1 || l2 || carry) {
+            int sum = carry;
+            if (l1) {
+                sum += l1->val;
+                l1 = l1->next;
+            }
+            if (l2) {
+                sum += l2->val;
+                l2 = l2->next;
+            }
+            carry = sum >= 10 ? 1 : 0;
+            sum %= 10;
+            ListNode *newNode = new ListNode(sum);
+            cur->next = newNode;
+            cur = newNode;
+        }
+        return dummy.next;
+    }
+};
+
+链表求和 II
+
+假定用一个链表表示两个数，其中每个节点仅包含一个数字。假设这两个数的数字顺序排列，请设计一种方法将两个数相加，并将其结果表现为链表的形式。
+
+样例
+给出 6->1->7 + 2->9->5。即，617 + 295。
+
+返回 9->1->2。即，912 。
+
+ListNode *addList2(ListNode *l1, ListNode *l2) {
+    l1 = reverse(l1);
+    l2 = reveres(l2);
+    return reverse(addTwoNums(l1, l2));
+}
+ListNode *reverse(ListNode *head) {
+    ListNode *pre, *cur, next;
+    pre = NULL, cur = head;
+    while (cur) {
+        next = cur->next;
+        cur->next = pre;
+        pre = cur;
+        cur = next;
+    }
+    return pre;
+}
+ListNode *addTwoNums(ListNode *l1, ListNode *l2) {
+    ListNode *dummy(0), *cur = &dummy;
+    int carry = 0;
+    while (l1 || l2 || carry) {
+        int sum = carry;
+        if (l1) {
+            sum += l1->next;
+            l1 = l1->next;
+        }
+        if (l2) {
+            sum += l2->next;
+            l2 = l2->next;
+        }
+        carry = sum / 10;
+        sum %= 10;
+        ListNode *newNode = new ListNode(sum);
+        cur->next = newNode;
+        cur = newNode;
+    }
+    return dummy.next;
+}
+
+reverse list 反转单链表的递归写法:
+ListNode *reverse(ListNode *head) {
+    if (head == NULL || head->next == NULL) return head;
+    ListNode *newHead = reverse(head->next);
+    head->next->next = head;
+    head->next = NULL;
+    return newHead;
+}
