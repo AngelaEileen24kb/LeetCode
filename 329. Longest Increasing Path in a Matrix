@@ -1,0 +1,157 @@
+329. Longest Increasing Path in a Matrix
+
+Given an integer matrix, find the length of the longest increasing path.
+
+From each cell, you can either move to four directions: left, right, up or down. 
+You may NOT move diagonally or move outside of the boundary (i.e. wrap-around is not allowed).
+
+Example 1:
+
+nums = [
+  [9,9,4],
+  [6,6,8],
+  [2,1,1]
+]
+Return 4
+The longest increasing path is [1, 2, 6, 9].
+
+Example 2:
+
+nums = [
+  [3,4,5],
+  [3,2,6],
+  [2,2,1]
+]
+Return 4
+The longest increasing path is [3, 4, 5, 6]. Moving diagonally is not allowed.
+
+Credits:
+Special thanks to @dietpepsi for adding this problem and creating all test cases.
+
+Tags: Depth-first Search Topological Sort Memoization
+
+Challenge
+O(nm) time and memory.
+
+http://www.cnblogs.com/jianxinzhou/p/4530825.html
+http://www.cnblogs.com/easonliu/p/4586518.html 
+
+这道题给我们一个二维数组，让我们求矩阵中最长的递增路径，规定我们只能上下左右行走，不能走斜线或者是超过了边界。
+那么这道题的解法要用递归和DP来解，用DP的原因是为了提高效率，避免重复运算。我们需要维护一个二维动态数组dp，
+其中dp[i][j]表示数组中以(i,j)为起点的最长递增路径的长度，初始将dp数组都赋为0，当我们用递归调用时，遇到某个位置(x, y), 
+如果dp[x][y]不为0的话，我们直接返回dp[x][y]即可，不需要重复计算。我们需要以数组中每个位置都为起点调用递归来做，
+比较找出最大值。在以一个位置为起点用DFS搜索时，对其四个相邻位置进行判断，如果相邻位置的值大于上一个位置，则对相邻位置继续调用递归，
+并更新一个最大值，搜素完成后返回即可
+
+返回的是它们的长度:
+备忘录，dp[i][j] = max{dp[i-1][j], dp[i][j-1], dp[i+1][j], dp[i][j+1]} + 1。
+
+这道题使用dfs+dp，在dfs时更新状态，状态转移方程为 dp[(i,j)] = max(dp[(smaller neibors of all)])  + 1，来看代码：
+
+class Solution {
+public:
+    int longestIncreasingPath(vector<vector<int>>& matrix) {
+        if (matrix.empty() || matrix[0].empty()) return 0;
+        int res = 0, m = matrix.size(), n = matrix[0].size();
+        vector<vector<int>> dp(m, vector<int>(n, 0));//dp[i][j]应该初始化为0,
+        for (int i = 0; i < m; ++i) {                //如果从-1开始会出错     
+            for (int j = 0; j < n; ++j) {
+                res = max(res, dfs(i, j, m, n, matrix, dp));
+            }
+        }
+        return res;
+    }
+    int dfs(int i, int j, int m, int n, vector<vector<int>>& matrix, vector<vector<int>>& dp) {
+        if (dp[i][j] != 0) return dp[i][j]; // 记忆化搜索，如果有值(之前dfs已经计算出的)直接返回，不再计算
+        int dx[] = {0, 1, 0, -1}; //逆时针
+        int dy[] = {-1, 0, 1, 0};
+        for (int k = 0; k < 4; ++k) { // dfs更新dp状态
+            int x = i + dx[k];
+            int y = j + dy[k];
+            if (x >= 0 && x < m && y >= 0 && y < n && matrix[i][j] < matrix[x][y]) {
+                dp[i][j] = max(dp[i][j], dfs(x, y, m, n, matrix, dp));
+            }
+        }
+        return ++dp[i][j]; //dp[i][j]的初始化应该从0开始,如果从-1开始会出错
+    }
+};
+
+或者dfs这么写也是对的:
+class Solution {
+public:
+    int longestIncreasingPath(vector<vector<int>>& matrix) {
+        if (matrix.empty() || matrix[0].empty()) return 0;
+        int res = 0, m = matrix.size(), n = matrix[0].size();
+        vector<vector<int>> dp(m, vector<int>(n, 0));//dp[i][j]应该初始化为0,
+        for (int i = 0; i < m; ++i) {                //如果从-1开始会出错     
+            for (int j = 0; j < n; ++j) {
+                res = max(res, dfs(i, j, m, n, matrix, dp));
+            }
+        }
+        return res;
+    }
+    int dfs(int i, int j, int m, int n, vector<vector<int>>& matrix, vector<vector<int>>& dp) {
+        if (dp[i][j] != 0) return dp[i][j]; // 记忆化搜索，如果有值(之前dfs已经计算出的)直接返回，不再计算
+        vector<pair<int, int>> dirs = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+        for (auto dir : dirs) { // dfs更新dp状态
+            int x = i + dir.first;
+            int y = j + dir.second;
+            if (x >= 0 && x < m && y >= 0 && y < n && matrix[i][j] < matrix[x][y]) {
+                dp[i][j] = max(dp[i][j], dfs(x, y, m, n, matrix, dp));
+            }
+        }
+        return ++dp[i][j]; //dp[i][j]的初始化应该从0开始,如果从-1开始会出错
+    }
+};
+
+这个代码也是AC code,不过还是上面的++dp[i][j]比较好理解一些:
+class Solution {
+public:
+    int longestIncreasingPath(vector<vector<int>>& matrix) {
+        if (matrix.empty() || matrix[0].empty()) return 0;
+        int res = 0, m = matrix.size(), n = matrix[0].size();
+        vector<vector<int>> dp(m, vector<int>(n, 0));//dp[i][j]应该初始化为0,
+        for (int i = 0; i < m; ++i) {                //如果从-1开始会出错     
+            for (int j = 0; j < n; ++j) {
+                res = max(res, dfs(i, j, m, n, matrix, dp) + 1); //和上面的区别, dfs + 1,不过还是上面比较好
+            }
+        }
+        return res;
+    }
+    int dfs(int i, int j, int m, int n, vector<vector<int>>& matrix, vector<vector<int>>& dp) {
+        if (dp[i][j] != 0) return dp[i][j]; // 记忆化搜索，如果有值(之前dfs已经计算出的)直接返回，不再计算
+        vector<pair<int, int>> dirs = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+        for (auto dir : dirs) { // dfs更新dp状态
+            int x = i + dir.first;
+            int y = j + dir.second;
+            if (x >= 0 && x < m && y >= 0 && y < n && matrix[i][j] < matrix[x][y]) {
+                dp[i][j] = max(dp[i][j], dfs(x, y, m, n, matrix, dp) + 1); //和上面的区别, dfs + 1
+            }
+        }
+        return dp[i][j]; //dp[i][j]的初始化应该从0开始,如果从-1开始会出错
+    }
+};
+
+这个分析也挺有用的: http://www.cnblogs.com/tritritri/p/4952157.html
+SOLUTION:
+
+第一步，问最大／最小问题，往DP方向去考虑。
+
+DP：就是看状态，转移方程，初始化，定义最后结果。
+
+状态：可以定义为 f(x,y) = 以(x,y)结尾，的最大LICS。
+
+转移方程：四个方向dp，不太好弄，并且初始值可能在中间某个位置，不好找。发现这种情况，果断的用记忆化搜索，递归去做。
+
+第二步，记忆化搜索：
+
+首先画一个递归树                         （x，y）
+
+                            /         /     \          \
+
+              上(x-1,y)  下(x+1,y) 左(x,y-1)  右(x,y+1)
+
+对于这个题，就是有一个点，向四周递归，但是下一步继续递归的时候，会重复计算(x,y)点，所以要用一个dp[][]数组纪录下结果，
+并且用一个flag[][]数组纪录这个点是否被计算过，如果计算过就可以直接返回答案。
+
+递归就需要用一个search()辅助函数,对这个辅助函数，定义的interface是这个点的坐标，以及之前给的原始数组信息A[][]。
