@@ -1,0 +1,178 @@
+[LeetCode] Bulb Switcher 灯泡开关
+
+There are n bulbs that are initially off. You first turn on all the bulbs. Then, you turn off every second bulb. 
+On the third round, you toggle every third bulb (turning on if it's off or turning off if it's on).
+For the nth round, you only toggle the last bulb. Find how many bulbs are on after n rounds.
+
+Example:
+
+Given n = 3. 
+
+At first, the three bulbs are [off, off, off].
+After first round, the three bulbs are [on, on, on].
+After second round, the three bulbs are [on, off, on].
+After third round, the three bulbs are [on, off, off]. 
+
+So you should return 1, because there is only one bulb is on.
+ 
+参考：
+http://www.cnblogs.com/grandyang/p/5100098.html
+
+这道题给了我们n个灯泡，第一次打开所有的灯泡，第二次每两个更改灯泡的状态，第三次每三个更改灯泡的状态，以此类推，
+第n次每n个更改灯泡的状态。让我们求n次后，所有亮的灯泡的个数。此题是CareerCup 6.6 Toggle Lockers 切换锁的状态。
+
+那么我们来看这道题吧，还是先枚举个小例子来分析下，比如只有5个灯泡的情况，'X'表示亮，‘√’表示灭，如下所示：
+
+初始状态：    X    X    X    X    X
+
+第一次：      √    √    √    √    √
+
+第二次：      √     X    √    X    √
+
+第三次：      √     X    X    X    √
+
+第四次：      √     X    X    √    √
+
+第五次：      √     X    X    √    X
+
+那么最后我们发现五次遍历后，只有1号和4号锁是亮的，而且很巧的是它们都是平方数，是巧合吗，还是其中有什么玄机。我们仔细想想，
+对于第n个灯泡，只有当次数是n的因子的之后，才能改变灯泡的状态，即n能被当前次数整除，比如当n为36时，
+它的因数有(1,36), (2,18), (3,12), (4,9), (6,6), 可以看到前四个括号里成对出现的因数各不相同，
+括号中前面的数改变了灯泡状态，后面的数又变回去了，等于锁的状态没有发生变化，只有最后那个(6,6)，在次数6的时候改变了一次状态，
+没有对应其它的状态能将其变回去了，所以锁就一直是打开状态的。所以所有平方数都有这么一个相等的因数对，即所有平方数的灯泡都将会是打开的状态。
+
+那么问题就简化为了求1到n之间完全平方数的个数，我们可以用force brute来比较从1开始的完全平方数和n的大小，参见代码如下：
+
+解法1:
+class Solution {
+public:
+    int bulbSwitch(int n) {
+        int res = 1;
+        while (res * res <= n) ++res;
+        return res - 1;
+    }
+};
+
+还有一种方法更简单，我们直接对n开方，在C++里的sqrt函数返回的是一个整型数，这个整型数的平方最接近于n，
+即为n包含的所有完全平方数的个数，参见代码如下：
+
+解法二：
+class Solution {
+public:
+    int bulbSwitch(int n) {
+        return sqrt(n);
+    }
+};
+https://leetcode.com/discuss/89449/the-simplest-and-most-efficient-solution-in-well-explained
+
+Before we take a jump to the solution, let's first try to clear out what exactly the problem is talking about:
+
+every i-th distance you switch the bulb to the opposite state (from on to off, or from off to on); 
+actually suppose the bulbs are labelled from 1 to n then the every second bulb will mean that 2, 4, 6, 8, ... 
+all even numbers less than n; while every third bulb will be 3, 6, 9, 12, ... all multiples of 3 that is less than n 
+and so on;
+since the bulb will only have two different states - on or off, the result will be quite clear now; 
+odd switching operations will result in bulb-on state (original state is bulb-off) while even switching
+operations will give us bulb-off state;
+Now the purpose here is clear searching for the odd-operation numbers:
+
+as for primes, they only have 1 and itself as their factors; so primes are even-operation numbers;
+as for non-primes, normally they will have different pairs of factors like 12 whose factors are 112, 26, 3*4 - 6 
+different factors, so they are also even-operation numbers;
+but among non-primes, there are some special numbers which are square numbers like 9 whose factors are 
+19, 33 - three different factors which means we finally got odd-operation numbers!
+So that's all we need to know to hack this problem now. But how to get the amount of squares that are less than n,
+quite simple, right? sqrt(n) is the answer. Confused? ok, all square numbers that is less than n will be 
+1, 4, 9 ... n and corresponding root will be 1, 2, 3,... sqrt(n) Get it?
+
+Bang. End of story.
+
+Space cost O(1)
+Time cost O(1)
+
+
+类似题目：
+
+6.6 Toggle Lockers 切换锁的状态
+
+[CareerCup] 6.6 Toggle Lockers 切换锁的状态
+ 
+
+6.6 There are 100 closed lockers in a hallway. A man begins by opening all 100 lockers. Next, he closes every second locker. 
+Then, on his third pass, he toggles every third locker (closes it if it is open or opens it if it is closed).
+This process continues for 100 passes, such that on each pass i, the man toggles every ith locker. 
+After his 100th pass in the hallway, in which he toggles only locker #100, how many lockers are open?
+
+ 
+
+这道题说一个走廊上有100个闭合的锁，首先一个人走过去打开所有的锁，第二次他切换2的倍数的锁的状态，第三次他切换3的倍数的锁的状态，
+第n次他切换n的倍数的锁的状态，以此类推直到100次遍历后，问我们有多少个锁的状态是打开的。
+
+看到这类的应用题，我不禁想起来了国内的被骂的很惨的数学题，比如有个蓄水池，以啥啥啥速度往里进水，又以啥啥啥速度排水，问多长时间能蓄满或是排空，
+要么就是有两个人相向而行，中间有条狗，以匀速往返跑，求两人相遇后狗跑了几个来回等等之类的题，很多实用主义者痛批此类题毫无实际意义，
+其实也不必那么较真，就是练练脑子而已，看人家国外不也用此类的题目来面试嘛。
+
+那么我们来看这道题吧，还是先枚举个小例子来分析下，比如只有5个锁的情况，'X'表示关闭，‘√’表示打开，如下所示：
+
+初始状态：    X    X    X    X    X
+
+第一次：      √    √    √    √    √
+
+第二次：      √     X    √    X    √
+
+第三次：      √     X    X    X    √
+
+第四次：      √     X    X    √    √
+
+第五次：      √     X    X    √    X
+
+那么最后我们发现五次遍历后，只有1号和4号锁是打开的，而且很巧的是它们都是平方数，是巧合吗，还是其中有什么玄机。
+我们仔细想想，对于第n个锁，只有当次数是n的因子的之后，才能改变锁的状态，即n能被当前次数整除，比如当n为36时，
+它的因数有(1,36), (2,18), (3,12), (4,9), (6,6), 可以看到前四个括号里成对出现的因数各不相同，
+括号中前面的数改变了锁状态，后面的数又变回去了，等于锁的状态没有发生变化，只有最后那个(6,6)，在次数6的时候改变了一次状态，
+没有对应其它的状态能将其变回去了，所以锁就一直是打开状态的。所以所有平方数都有这么一个相等的因数对，即所有平方数的锁都将会是打开的状态。
+
+[CareerCup] 6.5 Drop Eggs 扔鸡蛋问题
+ http://www.cnblogs.com/grandyang/p/4762756.html
+
+6.5 There is a building of 100 floors. If an egg drops from the Nth floor or above, it will break. 
+If it's dropped from any floor below, it will not break. You're given two eggs. 
+Find N, while minimizing the number of drops for the worst case
+
+ 
+
+这道题说有100层楼，从N楼开始扔鸡蛋会碎，低于N楼扔不会碎，现在给我们两个鸡蛋，让我们找到N，并且最小化最坏情况。
+
+因为只有两个鸡蛋，所以第一个鸡蛋应该是按一定的间距扔，比如10楼，20楼，30楼等等，比如10楼和20楼没碎，30楼碎了，
+那么第二个鸡蛋就要做线性搜索，分别尝试21楼，22楼，23楼等等直到鸡蛋碎了，就能找到临界点。那么我们来看下列两种情况：
+
+1. 假如临界点是9楼，那么鸡蛋1在第一次扔10楼碎掉，然后鸡蛋2依次遍历1到9楼，则总共需要扔10次。
+
+2. 假如临界点是100楼，那么鸡蛋1需要扔10次，到100楼时碎掉，然后鸡蛋2依次遍历91楼到100楼，总共需要扔19次。
+
+所以上述方法的最坏情况是19次，那么有没有更少的方法呢，上面那个方法每多扔一次鸡蛋1，鸡蛋2的线性搜索次数最多还是10次，
+那么最坏情况肯定会增加，所以我们需要让每多扔一次鸡蛋1，鸡蛋2的线性搜索最坏情况减少1，这样恩能够保持整体最坏情况的平衡，
+那么我们假设鸡蛋1第一次在第X层扔，然后向上X-1层扔一次，然后向上X-2层扔，以此类推直到100层，那么我们通过下面的公式求出X：
+
+X + (X-1) + (X-2) + ... + 1 = 100 -> X = 14
+
+所以我们先到14楼，然后27楼，然后39楼，以此类推，最坏情况需要扔14次。
+
+[CareerCup] 7.1 Basketball Shooting Game 投篮游戏
+ http://www.cnblogs.com/grandyang/p/4765721.html
+
+7.1 You have a basketball hoop and someone says that you can play one of two games.
+ Game 1: You get one shot to make the hoop.
+ Game 2: You get three shots and you have to make two of three shots.
+ If p is the probability of making a particular shot, for which values of p should you pick one game or the other?
+
+ 
+
+这道题提出了两种投篮游戏，可以任意选择一种，第一种是投一次篮，第二种是投三次中两个即可，现给出投篮命中率为p，问p的取值和选择哪个游戏的关系。
+
+这题是典型的我大天朝高中数学中的概率问题，当时做的题可比这个要难的多。对于Game1，只投一次篮，那么获胜概率就是p，
+对于Game2，要获胜的情况有两种，一种是3个全命中，概率为p3，另一种是命中其中两个球，三个球中选两个的情况有3种，
+则命中率是3p2(1-p),那么我们先求Game1>Game2的情况，即p > 3p2(1-p)，接的p < 0.5, 而当p = 0, 0.5 或 1的时候，，两边相等。
+那么结论就出来了，当命中率小于0.5时，选Game1，当命中率为0,0.5或1时，选哪个都行。
+
+
