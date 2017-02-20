@@ -1,0 +1,82 @@
+316. Remove Duplicate Letters
+
+Given a string which contains only lowercase letters, remove duplicate letters so that every letter appear once and only once.
+You must make sure your result is the smallest in lexicographical order among all possible results.
+
+Example:
+Given "bcabc"
+Return "abc"
+
+Given "cbacdcbc"
+Return "acdb"
+
+Credits:
+Special thanks to @dietpepsi for adding this problem and creating all test cases.
+
+参考：
+http://www.cnblogs.com/grandyang/p/5085379.html
+
+https://leetcode.com/discuss/75529/c-simple-solution-easy-understanding
+
+这道题让我们移除重复字母，使得每个字符只能出现一次，而且结果要按字母顺序排，前提是不能打乱其原本的相对位置。
+我们的解题思路是：先建立一个哈希表来统计每个字母出现的次数，还需要一个visited数字来纪录每个字母是否被访问过，
+我们遍历整个字符串，对于遍历到的字符，先在哈希表中将其值减一，然后看visited中是否被访问过，若访问过则继续循环，
+说明该字母已经出现在结果中并且位置已经安排妥当。如果没访问过，我们和结果中最后一个字母比较，如果该字母的ASCII码小
+并且结果中的最后一个字母在哈希表中的值不为0(说明后面还会出现这个字母)，那么我们此时就要在结果中删去最后一个字母且将其标记为未访问，
+然后加上当前遍历到的字母，并且将其标记为已访问，以此类推直至遍历完整个字符串s，此时结果里的字符串即为所求。
+这里有个小技巧，我们一开始给结果字符串res中放个"0"，就是为了在第一次比较时方便，如果为空就没法和res中的最后一个字符比较了，
+而‘0’的ASCII码要小于任意一个字母的，所以不会有问题。最后我们返回结果时再去掉开头那个‘0’即可，参见代码如下：
+
+class Solution {
+public:
+    string removeDuplicateLetters(string s) {
+        int hash[256] = {0}, visited[256] = {0};
+        string res = "0";
+        for (auto a : s) {
+            ++hash[a];
+        }
+        for (auto a : s) {
+            --hash[a];
+            if (visited[a]) {
+                continue;
+            }
+            while (a < res.back() && hash[res.back()]) {
+                visited[res.back()] = 0;
+                res.pop_back();
+            }
+            res += a;
+            visited[a] = 1;
+        }
+        return res.substr(1);//要把最开始前面加的那个"0"去掉
+    }
+};
+
+或者这么写，其实是一样的:
+string removeDuplicateLetters(string s) {
+    vector<int> hash(256, 0);
+    vector<bool> visited(256, false);
+    string res = "0"; //because the sting::back function shall not be called on empty strings.
+    for (char a : s) {
+        ++hash[a];
+    }
+    for (char a : s) {
+        --hash[a];
+        if (visited[a]) {
+            continue;
+        }
+        while (a < res.back() && hash[res.back()]) {
+            visited[res.back()] = false;
+            res.pop_back();
+        }
+        res += a;
+        visited[a] = true;
+    }
+    return res.substr(1);//要把最开始前面加的那个"0"去掉
+}
+
+Nice clever solution :-).
+
+Just a nit. Is the initialization of result with "0" really needed ? Even an empty string has the null character.
+Hence the result.back() works even with a null string.
+
+It is necessary because the sting::back function shall not be called on empty strings.
