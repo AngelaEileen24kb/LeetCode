@@ -1,0 +1,188 @@
+331. Verify Preorder Serialization of a Binary Tree
+
+[LeetCode] Verify Preorder Serialization of a Binary Tree 验证二叉树的先序序列化
+
+One way to serialize a binary tree is to use pre-order traversal. When we encounter a non-null node, we record the node's value. If it is a null node, we record using a sentinel value such as #.
+
+     _9_
+    /   \
+   3     2
+  / \   / \
+ 4   1  #  6
+/ \ / \   / \
+# # # #   # #
+For example, the above binary tree can be serialized to the string "9,3,4,#,#,1,#,#,2,#,6,#,#", where # represents a null node.
+
+Given a string of comma separated values, verify whether it is a correct preorder traversal serialization of a binary tree. Find an algorithm without reconstructing the tree.
+
+Each comma separated value in the string must be either an integer or a character '#' representing null pointer.
+
+You may assume that the input format is always valid, for example it could never contain two consecutive commas such as "1,,3".
+
+Example 1:
+"9,3,4,#,#,1,#,#,2,#,6,#,#"
+Return true
+
+Example 2:
+"1,#"
+Return false
+
+Example 3:
+"9,#,#,1"
+Return false
+
+Credits:
+Special thanks to @dietpepsi for adding this problem and creating all test cases.
+
+这道题给了我们一个类似序列化二叉树后的字符串，关于二叉树的序列化和去序列化可以参见我之前的博客Serialize and Deserialize Binary Tree，这道题让我们判断给定是字符串是不是一个正确的序列化的二叉树的字符串。那么根据之前那边博客的解法，我们还是要用istringsteam来操作字符串，C++里面没有像Java那样有字符串的split函数，可以直接分隔任意字符串，我们只能使用getline这个函数，来将字符串流的内容都存到一个vector数组中。我们通过举一些正确的例子，比如"9,3,4,#,#,1,#,#,2,#,6,#,#" 或者"9,3,4,#,#,1,#,#,2,#,6,#,#"等等，可以观察出如下两个规律：
+
+1. 数字的个数总是比#号少一个
+
+2. 最后一个一定是#号
+
+那么我们加入先不考虑最后一个#号，那么此时数字和#号的个数应该相同，如果我们初始化一个为0的计数器，遇到数字，计数器加1，遇到#号，计数器减1，那么到最后计数器应该还是0。下面我们再来看两个返回False的例子，"#,7,6,9,#,#,#"和"7,2,#,2,#,#,#,6,#"，那么通过这两个反例我们可以看出，如果根节点为空的话，后面不能再有节点，而且不能有三个连续的#号出现。所以我们再加减计数器的时候，如果遇到#号，且此时计数器已经为0了，再减就成负数了，就直接返回False了，因为正确的序列里，任何一个位置i，在[0, i]范围内的#号数都不大于数字的个数的。当循环完成后，我们检测计数器是否为0的同时还要看看最后一个字符是不是#号。参见代码如上：
+
+Using stringstream can make parsing a bit easier:
+
+stringstream ss.str(preorder);
+string t;
+vector<string> v;
+while (getline(ss, t, ',')) {
+    v.push_back(t);
+}
+
+class Solution {
+public:
+    bool isValidSerialization(string preorder) {
+        if (preorder.empty()) return false;
+        istringstream in(preorder);
+        vector<string> v;
+        string val;
+        while (getline(in, val, ',')) {
+            v.push_back(val);
+        }
+        int d = 0;
+        for (int i = 0; i < v.size() - 1; ++i) {
+            if (v[i] == "#") {
+                if (d == 0) {
+                    return false;
+                } else {
+                    --d;
+                }
+            } else {
+                ++d;
+            }
+        }
+        return d != 0 ? false : v.back() == "#";
+    }
+};
+
+参考：
+http://www.cnblogs.com/grandyang/p/5174738.html
+
+类似题目：
+
+Serialize and Deserialize Binary Tree
+
+
+
+
+参考：
+https://leetcode.com/discuss/84073/straight-forward-c-solution-with-explanation
+
+class Solution {
+public:
+    bool isValidSerialization(string preorder) {
+        int nodeCnt = 0, nullCnt = 0;
+        vector<string> v = splitStr(preorder, ',');
+        for (int i = 0; i < v.size(); ++i) {
+            if (v[i] == "#") {
+                ++nullCnt;
+            } else {
+                ++nodeCnt;
+            }
+            if (nullCnt >= nodeCnt + 1 && i != v.size() - 1) { //eg, "#, 1, #" --> false
+                return false;
+            }
+        }
+        return nullCnt == nodeCnt + 1;
+    }
+    vector<string> splitStr(string str, char delimiter) {
+        vector<string> res;
+        while (!str.empty()) {
+            int ind = str.find_first_of(delimiter);
+            if (ind == -1) {
+                res.push_back(str);
+                str.clear();
+            } else {
+                res.push_back(str.substr(0, ind));
+                str = str.substr(ind + 1, str.size() - ind - 1);
+            }
+        }    
+        return res;
+    }
+};
+
+或者这么写：
+class Solution {
+public:
+    bool isValidSerialization(string preorder) {
+        int nodeCnt = 0, nullCnt = 0;
+        stringstream ss; //初始化
+        ss.str(preorder); //或者两句合并为1句: stringstream ss(preorder);
+        string t;
+        vector<string> v;
+        while (getline(ss, t, ',')) {
+            v.push_back(t);
+        }
+        for (int i = 0; i < v.size(); ++i) {
+            if (v[i] == "#") {
+                ++nullCnt;
+            } else {
+                ++nodeCnt;
+            }
+            if (nullCnt >= nodeCnt + 1 && i != v.size() - 1) { //eg, "#, 1, #" --> false
+                return false;
+            }
+        }
+        return nullCnt == nodeCnt + 1;
+    }
+};
+/*
+The idea is simple.
+
+Denote the number of null nodes as nullCnt, the number of actual nodes as nodeCnt.
+
+For a binary tree, the number of null nodes is always the number of actual nodes plus 1. nullCnt==nodeCnt+1;
+
+So,
+
+if nullCnt>nodeCnt+1, the tree is invalid.
+if nullCnt<nodeCnt+1, the tree is incomplete.
+if nullCnt==nodeCnt+1, the tree is complete and can't be extended.
+We just need to keep track of nullCnt and nodeCnt as we go through the sequence and check these conditions above.
+
+Actually, recording nullCnt-nodeCnt is enough, so you can further improve the code.
+
+
+Edit: The algorithm scans the string one node at a time from the beginning, once it finds nullCnt>nodeCnt+1, it stops and return false.
+
+If it finds nullCnt==nodeCnt+1, that means by now, the tree is valid(otherwise the algorithm would return false before this) and complete, if there are more nodes to come, it returns false; if it's the last node, the algorithm returns true.
+
+If it finds nullCnt<nodeCnt+1, that means the tree is incomplete but not invalid(or the algorithm would return false before this) by now, if this is the last node and no more nodes comes after it, the tree is invalid.
+
+Example:
+
+"#,1,#" 1st node is #, nullCnt==1, nodeCnt==0, nullCnt==nodeCnt+1, the tree is complete by now, but there are more nodes after it, so it's invalid.
+
+"1, #" 1st node is 1, nullCnt==0, nodeCnt==1, nullCnt<nodeCnt+1, the tree is incomplete, but there are more nodes after it, so we proceed, 2nd node is #, nullCnt==1, nodeCnt==1, nullCnt<nodeCnt+1, the tree is incomplete and there are no more nodes left, so it's invalid.
+
+Edit2:
+
+Why for a binary tree, nullCnt==nodeCnt+1?
+
+For an empty binary tree, nullCnt=1, nodeCnt=0, nullCnt==nodeCnt+1.
+
+Each time we add an actual node, we take the place of one null node and create two null nodes, so the net gain of null node is one, which is also the net gain of actual node. Thus, the actual nodes and null nodes will increase by the same amount, which means nullCnt==nodeCnt+1 will always hold.
+
+
