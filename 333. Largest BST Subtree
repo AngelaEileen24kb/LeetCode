@@ -1,0 +1,213 @@
+[LeetCode] Largest BST Subtree 最大的二分搜索子树
+ 
+
+Given a binary tree, find the largest subtree which is a Binary Search Tree (BST),
+where largest means subtree with largest number of nodes in it.
+
+Note:
+A subtree must include all of its descendants.
+Here's an example:
+
+    10
+    / \
+   5  15
+  / \   \ 
+ 1   8   7
+The Largest BST Subtree in this case is the highlighted one. 
+The return value is the subtree's size, which is 3.
+
+ 
+
+Hint:
+
+You can recursively use algorithm similar to 98. Validate Binary Search Tree at each node of the tree, 
+which will result in O(nlogn) time complexity.
+Follow up:
+Can you figure out ways to solve it with O(n) time complexity?
+
+ 
+
+这道题让我们求一棵二分树的最大二分搜索子树，所谓二分搜索树就是满足左<根<右的二分树，我们需要返回这个二分搜索子树的节点个数。
+题目中给的提示说我们可以用之前那道Validate Binary Search Tree的方法来做，时间复杂度为O(nlogn)，
+这种方法是把每个节点都当做根节点，来验证其是否是二叉搜索数，并记录节点的个数，若是二叉搜索树，就更新最终结果，参见代码如下：
+
+
+class Solution {
+public:
+    int largestBSTSubtree(TreeNode* root) {
+        int res = 0;
+        dfs(root, res);
+        return res;
+    }
+    void dfs(TreeNode *root, int &res) {
+        if (!root) return;
+        int d = countBFS(root, INT_MIN, INT_MAX);
+        if (d != -1) {
+            res = max(res, d);
+            return;
+        }
+        dfs(root->left, res);
+        dfs(root->right, res);
+    }
+    int countBFS(TreeNode *root, int mn, int mx) {
+        if (!root) return 0;
+        if (root->val < mn || root->val > mx) return -1;
+        int left = countBFS(root->left, mn, root->val);
+        if (left == -1) return -1;
+        int right = countBFS(root->right, root->val, mx);
+        if (right == -1) return -1;
+        return left + right + 1;
+    }
+};
+
+题目中的Follow up让我们用O(n)的时间复杂度来解决问题，我们还是采用DFS的思想来解题，由于时间复杂度的限制，
+只允许我们遍历一次整个二叉树，由于满足题目要求的 二叉搜索子树必定是有叶节点的，所以我们的思路就是先递归到最左子节点，
+然后逐层往上递归，对于每一个节点，我们都记录当前最大的BST的节点数，当做为左子树的最大值，和做为右子树的最小值，
+当每次遇到左子节点不存在或者当前节点值大于左子树的最大值，且右子树不存在或者当前节点值小于右子树的最小数时，
+说明BST的节点数又增加了一个，我们更新结果及其参数，如果当前节点不是BST的节点，那么我们更新BST的节点数res为左右子节点
+的各自的BST的节点数的较大值，参见代码如下：
+
+
+https://leetcode.com/discuss/85959/12ms-c-solution
+
+I think this solution is O(N) since it visits every node exactly once and does a constant amount of work for each. 
+Any comments?
+
+class Solution {
+public:
+    int largestBSTSubtree(TreeNode* root) {
+        int res = 0;
+        int mini, maxi;
+        bool b = isBST(root, res, mini, maxi);
+        return res;
+    }
+    bool isBST(TreeNode* node, int& res, int &mini, int  &maxi) {
+        if (!node) {
+            return true;
+        }
+        int left_size = 0, right_size = 0;
+        int left_mini, left_maxi, right_mini, right_maxi;
+
+        bool leftB = isBST(node->left, left_size, left_mini, left_maxi);
+        bool rightB = isBST(node->right, right_size, right_mini, right_maxi);
+
+        if (leftB && rightB) {
+            if ((!node->left || node->val >= left_maxi) && (!node->right || node->val <= right_mini)) {  
+            /* The tree rooted at this node is a binary search tree */
+
+                res = left_size + right_size + 1;
+
+                mini = node->left ? left_mini : node->val;
+                maxi = node->right ? right_maxi : node->val;
+                return true;
+            }
+        }
+        /* The tree rooted at this node is not a binary search tree, so take the maximum size of the BST 
+        in the left or right subtrees */
+        res = max(left_size, right_size);
+        return false;
+    }
+}
+
+How did you come up with the API of bool isBST(TreeNode* node, int& res, int& mini, int& maxi) ? Thanks
+
+It took me a while to figure it out, initially I did something simpler where I didn't find mini and maxi in the left 
+and right subtrees, but then I realised it wouldn't work without them. So I added mini and maxi.
+
+这道题让我们求一棵二分树的最大二分搜索子树，所谓二分搜索树就是满足左<根<右的二分树，我们需要返回这个二分搜索子树的节点个数。
+题目中给的提示说我们可以用之前那道Validate Binary Search Tree的方法来做，时间复杂度为O(n2)，这种方法是把每个节点都当做根节点，
+来验证其是否是二叉搜索数，并记录节点的个数，若是二叉搜索树，就更新最终结果，参见代码如下：
+法1:
+class Solution {
+public:
+    int largestBSTSubtree(TreeNode* root) {
+        int res = 0;
+        dfs(root, res);
+        return res;
+    }
+    void dfs(TreeNode *root, int &res) {
+        if (!root) return;
+        int d = countBFS(root, INT_MIN, INT_MAX);
+        if (d != -1) {
+            res = max(res, d);
+            return;
+        }
+        dfs(root->left, res);
+        dfs(root->right, res);
+    }
+    int countBFS(TreeNode *root, int mn, int mx) {
+        if (!root) return 0;
+        if (root->val <= mn || root->val >= mx) return -1;
+        int left = countBFS(root->left, mn, root->val);
+        if (left == -1) return -1;
+        int right = countBFS(root->right, root->val, mx);
+        if (right == -1) return -1;
+        return left + right + 1;
+    }
+};
+下面我们来看一种更简洁的写法，对于每一个节点，都来验证其是否是BST，如果是的话，我们就统计节点的个数即可，参见代码如下：
+法2：
+class Solution {
+public:
+    int largestBSTSubtree(TreeNode* root) {
+        if (!root) return 0;
+        if (isValid(root, INT_MIN, INT_MAX)) return count(root);
+        return max(largestBSTSubtree(root->left), largestBSTSubtree(root->right));
+    }
+    bool isValid(TreeNode* root, int mn, int mx) {
+        if (!root) return true;
+        if (root->val <= mn || root->val >= mx) return false;
+        return isValid(root->left, mn, root->val) && isValid(root->right, root->val, mx);
+    }
+    int count(TreeNode* root) {
+        if (!root) return 0;
+        return count(root->left) + count(root->right) + 1;
+    }
+};
+
+题目中的Follow up让我们用O(n)的时间复杂度来解决问题，我们还是采用DFS的思想来解题，由于时间复杂度的限制，
+只允许我们遍历一次整个二叉树，由于满足题目要求的 二叉搜索子树必定是有叶节点的，所以我们的思路就是先递归到最左子节点，
+然后逐层往上递归，对于每一个节点，我们都记录当前最大的BST的节点数，当做为左子树的最大值，和做为右子树的最小值，
+当每次遇到左子节点不存在或者当前节点值大于左子树的最大值，且右子树不存在或者当前节点值小于右子树的最小数时，
+说明BST的节点数又增加了一个，我们更新结果及其参数，如果当前节点不是BST的节点，那么我们更新BST的节点数res为左右子节点的
+各自的BST的节点数的较大值，参见代码如下：
+法3:
+
+class Solution {
+public:
+    int largestBSTSubtree(TreeNode* root) {
+        int res = 0, mn = INT_MIN, mx = INT_MAX;
+        bool d = isValidBST(root, mn, mx, res);
+        return res;
+    }
+    bool isValidBST(TreeNode *root, int &mn, int &mx, int &res) {
+        if (!root) return true;
+        int left_n = 0, right_n = 0, left_mn = INT_MIN;
+        int right_mn = INT_MIN, left_mx = INT_MAX, right_mx = INT_MAX;
+        bool left = isValidBST(root->left, left_mn, left_mx, left_n);
+        bool right = isValidBST(root->right, right_mn, right_mx, right_n);
+        if (left && right) {
+            if ((!root->left || root->val >= left_mx) && (!root->right || root->val <= right_mn)) {
+                res = left_n + right_n + 1;
+                mn = root->left ? left_mn : root->val;
+                mx = root->right ? right_mx : root->val;
+                return true;
+            }
+        }
+        res = max(left_n, right_n);
+        return false;
+    }
+};
+类似题目：
+
+Validate Binary Search Tree
+参考:
+http://www.cnblogs.com/grandyang/p/5188938.html
+
+
+
+
+
+
+
+
