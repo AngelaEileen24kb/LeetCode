@@ -31,7 +31,7 @@ Given word = "word", return the following list (order does not matter):
 1110 3d
 1111 4
 
- 
+
 
 那么我们就可以观察出规律，凡是0的地方都是原来的字母，单独的1还是1，如果是若干个1连在一起的话，就要求出1的个数，
 用这个数字来替换对应的字母，既然规律找出来了，那么代码就很好写了，如下所示：
@@ -135,6 +135,146 @@ public:
 
 ["4","w3","wo2","wor1","word","wo1d","w1r1","w1rd","w2d","1o2","1or1","1ord","1o1d","2r1","2rd","3d"]
 
+在Xcode上debug得到的过程:
+
+class Solution {
+public:
+    vector<string> generateAbbreviations(string word) {
+        vector<string> res;
+        for (int i = 0; i < pow(2, word.size()); ++i) {
+            string out = "";
+            int cnt = 0;
+            for (int j = 0; j < word.size(); ++j) {
+                if ((i >> j) & 1) ++cnt;
+                else {
+                    if (cnt != 0) {
+                        out += to_string(cnt);
+                        cnt = 0;
+                    }
+                    out += word[j];
+                }
+            }
+            if (cnt > 0) out += to_string(cnt);
+            res.push_back(out);
+        }
+        return res;
+    }
+};
+
+int main(int argc, const char* argv[]) {
+    Solution s;
+    string word = "word";
+    vector<string> res = s.generateAbbreviations(word);
+    for(auto x : res) {
+        cout << x << '\n';
+    }
+}
+
+/*
+上述方法返回结果的顺序为：
+
+["word","1ord","w1rd","2rd","wo1d","1o1d","w2d","3d","wor1","1or1","w1r1","2r1","wo2","1o2","w3","4"]
+
+0000  word 
+0001  1ord
+0010  w1rd
+0011  2rd
+0100  wo1d
+0101  1o1d
+0110  w2d
+0111  3d
+1000  wor1
+1001  1or1
+1010  w1r1
+1011  2r1
+1100  wo2
+1101  1o2
+1110  w3
+1111  4
+*/
+
+
+那么迭代的写法看完了，来考虑一些递归的写法吧，上网搜了一下，发现下面三种写法比较容易理解， 
+
+解法三:
+class Solution {
+public:
+    vector<string> generateAbbreviations(string word) {
+        vector<string> res{word};
+        helper(word, 0, res);
+        return res;
+    }
+    void helper(string word, int pos, vector<string> &res) {
+        for (int i = pos; i < word.size(); ++i) {
+            for (int j = 1; i + j <= word.size(); ++j) {
+                string t = word.substr(0, i);
+                t += to_string(j) + word.substr(i + j);
+                res.push_back(t);
+                helper(t, i + 1 + to_string(j).size(), res);
+            }
+        }
+    }
+};
+
+/*
+上述方法返回结果的顺序为：
+
+["word","1ord","1o1d","1o2","1or1","2rd","2r1","3d","4","w1rd","w1r1","w2d","w3","wo1d","wo2","wor1"]
+开始:          word
+i = 0, j = 1,  1ord --> 1o1d, 1o2, 1or1
+       j = 2,  2rd --> 2r1
+       j = 3,  3d
+       j = 4,  4
+i = 1, j = 1,  w1rd --> w1r1
+	   j = 2,  w2d
+	   j = 3,  w3
+i = 2, j = 1,  wo1d 
+	   j = 2,  wo2
+i = 3, j = 1,  wor1
+*/
+
+解法4:
+
+class Solution {
+public:
+    vector<string> generateAbbreviations(string word) {
+        vector<string> res;
+        helper(word, 0, 0, "", res);
+        return res;
+    }
+    void helper(string word, int pos, int cnt, string out, vector<string> &res) {
+        if (pos == word.size()) {
+            if (cnt > 0) out += to_string(cnt);
+            res.push_back(out);
+        } else {
+            helper(word, pos + 1, cnt + 1, out, res);
+            helper(word, pos + 1, 0, out + (cnt > 0 ? to_string(cnt) : "") + word[pos], res);
+        }
+    }
+};
+/*
+上述方法返回结果的顺序为：
+
+ ["4","3d","2r1","2rd","1o2","1o1d","1or1","1ord","w3","w2d","w1r1","w1rd","wo2","wo1d","wor1","word"]
+
+4
+3d
+2r1
+2rd
+1o2
+1o1d
+1or1
+1ord
+w3
+w2d
+w1r1
+w1rd
+wo2
+wo1d
+wor1
+word
+
+*/
 
 
 之前的:
