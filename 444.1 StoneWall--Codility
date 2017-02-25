@@ -1,0 +1,77 @@
+题目: StoneWall
+
+https://codility.com/programmers/task/stone_wall/
+
+You are going to build a stone wall. The wall should be straight and N meters long, and its thickness should be constant; 
+however, it should have different heights in different places. The height of the wall is specified by a zero-indexed array 
+H of N positive integers. H[I] is the height of the wall from I to I+1 meters to the right of its left end. In particular,
+H[0] is the height of the wall's left end and H[N−1] is the height of the wall's right end.
+
+The wall should be built of cuboid stone blocks (that is, all sides of such blocks are rectangular). 
+Your task is to compute the minimum number of blocks needed to build the wall.
+
+Write a function:
+
+int solution(int H[], int N);
+that, given a zero-indexed array H of N positive integers specifying the height of the wall, 
+returns the minimum number of blocks needed to build it.
+
+For example, given array H containing N = 9 integers:
+
+  H[0] = 8    H[1] = 8    H[2] = 5
+  H[3] = 7    H[4] = 9    H[5] = 8
+  H[6] = 7    H[7] = 4    H[8] = 8
+the function should return 7. The figure shows one possible arrangement of seven blocks.
+
+
+
+Assume that:
+
+N is an integer within the range [1..100,000];
+each element of array H is an integer within the range [1..1,000,000,000].
+Complexity:
+
+expected worst-case time complexity is O(N);
+expected worst-case space complexity is O(N), beyond input storage (not counting the storage required for input arguments).
+Elements of input arrays can be modified.
+Copyright 2009–2017 by Codility Limited. All Rights Reserved. Unauthorized copying, publication or disclosure prohibited.
+
+解答:
+https://codesays.com/2014/solution-to-sigma-2012-stone-wall-by-codility/
+
+
+class Solution {
+    int stoneWalls(vector<int>& H) {
+        stack<int> s;
+        int res = 0;  # The number of needing blocks
+        for (int i = 0; i < H.size(); ++i) {
+            while (!s.empty() && s.top() > H[i]) {
+                # If the height of current block is less than
+                #    the previous ones, the previous ones have
+                #    to end before current point. They have no
+                #    chance to exist in the remaining part.
+                # So the previous blocks are completely finished.
+            //如果当前砖的高度小于前一块砖的高度，那么前一块砖就必须在当前点结束，
+            //他们没有机会继续待在剩下的部分
+                s.pop();
+                res++;
+            }
+            if (s.empty() || s.top() < H[i]) {
+                # If the height of current block is greater than
+                #    the previous one, a new block is needed for
+                #    current position.
+            //如果当前砖的高度大于前一块砖的高度，当前位置就需要一块新的砖
+                s.push(H[i]);
+            }
+            # Else (the height of current block is same as that
+            #    of previous one), they should be combined to
+            #    one block.
+        }
+        # Some blocks with different heights are still in the stack.
+        res += s.size();
+        return res;
+    }
+}
+
+也可参考: 但是还是上面的最简洁
+https://mrsurajpoudel.wordpress.com/2014/11/25/codility-stonewall/
